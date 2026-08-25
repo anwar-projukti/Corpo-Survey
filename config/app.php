@@ -86,6 +86,31 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Supported Locales
+    |--------------------------------------------------------------------------
+    |
+    | Locales the language switcher (and SetLocale middleware) will accept.
+    |
+    */
+
+    'supported_locales' => ['en', 'bn'],
+
+    /*
+    |--------------------------------------------------------------------------
+    | RTL Locales
+    |--------------------------------------------------------------------------
+    |
+    | Both supported locales are LTR today. Layout derives dir="rtl"/"ltr"
+    | from this list (see resources/views/partials/head.blade.php) rather
+    | than hard-coding LTR, so an RTL locale (e.g. Arabic, Urdu) can be
+    | added here later without touching any layout file — spec §4.
+    |
+    */
+
+    'rtl_locales' => [],
+
+    /*
+    |--------------------------------------------------------------------------
     | Encryption Key
     |--------------------------------------------------------------------------
     |

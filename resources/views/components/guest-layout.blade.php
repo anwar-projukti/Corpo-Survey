@@ -1,17 +1,22 @@
+@props(['title' => null])
+
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ \App\Support\Locale::direction() }}">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <title>{{ config('app.name') }}</title>
-
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @include('partials.head', ['title' => $title])
 </head>
-<body class="antialiased bg-gray-50 dark:bg-gray-950">
+<body class="antialiased font-sans bg-surface-subtle dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+    <div class="absolute top-4 right-4 flex items-center gap-2">
+        <x-language-switcher />
+        <x-theme-switcher />
+    </div>
+
     <div class="min-h-screen flex items-center justify-center px-4">
-        <div class="w-full max-w-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-8">
+        <div class="w-full max-w-sm bg-surface dark:bg-gray-900 border border-border-subtle dark:border-gray-800 rounded-card p-8">
+            <div class="mb-6 text-center">
+                <span class="font-semibold text-lg text-gray-900 dark:text-gray-100">{{ config('app.name') }}</span>
+            </div>
+
             {{ $slot }}
         </div>
     </div>

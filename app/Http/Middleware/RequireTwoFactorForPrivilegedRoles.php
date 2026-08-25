@@ -63,6 +63,19 @@ class RequireTwoFactorForPrivilegedRoles
             return $next($request);
         }
 
+        // A JSON-expecting request (e.g. the theme switcher's fetch() call)
+        // must never receive an HTML redirect — the caller can't follow it
+        // meaningfully, and fetch() won't treat it as an error either, so
+        // the failure would otherwise be silent. Every such endpoint would
+        // otherwise need to be remembered and added to EXEMPT_ROUTES by
+        // hand, which is exactly how this class of bug slips in.
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Two-factor authentication setup is required before this action.',
+            ], 409);
+        }
+
         return redirect()->route('two-factor.setup');
     }
 }

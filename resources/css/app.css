@@ -5,7 +5,54 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    /* Typography — Inter for Latin text, Noto Sans Bengali layered in for
+       Bangla glyphs so mixed-language content (e.g. a bilingual survey
+       title) renders both scripts correctly from the same stack. Loaded
+       via Google Fonts <link> tags in the layout, not @import here. */
+    --font-sans: 'Inter', 'Noto Sans Bengali', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-serif: 'Noto Serif Bengali', ui-serif, Georgia, serif;
+
+    /* Brand palette — a restrained indigo, distinct from Tailwind's default
+       to avoid the generic "admin template" look the spec calls out. */
+    --color-brand-50: #eef2ff;
+    --color-brand-100: #e0e7ff;
+    --color-brand-200: #c7d2fe;
+    --color-brand-300: #a5b4fc;
+    --color-brand-400: #818cf8;
+    --color-brand-500: #6366f1;
+    --color-brand-600: #4f46e5;
+    --color-brand-700: #4338ca;
+    --color-brand-800: #3730a3;
+    --color-brand-900: #312e81;
+    --color-brand-950: #1e1b4b;
+
+    /* Semantic surfaces — referenced by components instead of raw grays,
+       so light/dark stay in one place. */
+    --color-surface: var(--color-white);
+    --color-surface-subtle: var(--color-gray-50);
+    --color-surface-inverse: var(--color-gray-900);
+    --color-border-subtle: var(--color-gray-200);
+
+    /* Spacing / radius tokens used across cards, inputs, and panels. */
+    --radius-card: 0.75rem;
+    --radius-control: 0.5rem;
+}
+
+:root {
+    color-scheme: light;
+}
+
+:root.dark {
+    color-scheme: dark;
+}
+
+/* Bangla line-height/leading needs slightly more room than Latin text at
+   the same font-size to stay readable — applied via a lang-scoped rule
+   rather than baked into every component. */
+:lang(bn) {
+    line-height: 1.75;
 }
