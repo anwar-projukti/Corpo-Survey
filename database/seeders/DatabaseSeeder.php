@@ -32,5 +32,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@example.com',
         ]);
         $orgAdmin->assignRole('Org Admin');
+
+        $this->call(SurveySeeder::class);
     }
 }

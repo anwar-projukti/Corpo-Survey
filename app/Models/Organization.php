@@ -34,6 +34,11 @@ class Organization extends Model
         return $this->hasMany(User::class);
     }
 
+    public function surveys(): HasMany
+    {
+        return $this->hasMany(Survey::class);
+    }
+
     public function isActive(): bool
     {
         return $this->status === 'active';
