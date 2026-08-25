@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\PublicSurveyPageController;
 use App\Http\Controllers\SurveyPageController;
 use App\Http\Controllers\ThemeController;
+use App\Http\Middleware\GrantsPublicSurveyAccess;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -10,6 +12,13 @@ Route::get('/', function () {
 });
 
 Route::post('/locale', LocaleController::class)->name('locale.update');
+
+// The public respondent-facing survey link (spec §5.8) — access is gated
+// by the URL's own signature, not by auth, so this sits outside every
+// auth/verified/2FA middleware group above.
+Route::get('/s/{survey}', [PublicSurveyPageController::class, 'show'])
+    ->middleware(['signed', GrantsPublicSurveyAccess::class])
+    ->name('public.surveys.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/home', function () {

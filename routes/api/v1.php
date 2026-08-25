@@ -1,13 +1,49 @@
 <?php
 
+use App\Http\Controllers\Api\V1\PublicSurveys\PublicSurveyController;
+use App\Http\Controllers\Api\V1\PublicSurveys\PublicSurveyOtpController;
+use App\Http\Controllers\Api\V1\PublicSurveys\PublicSurveyResponseController;
 use App\Http\Controllers\Api\V1\Surveys\QuestionOptionController;
 use App\Http\Controllers\Api\V1\Surveys\SurveyController;
 use App\Http\Controllers\Api\V1\Surveys\SurveyQuestionController;
 use App\Http\Controllers\Api\V1\Surveys\SurveyRuleController;
 use App\Http\Controllers\Api\V1\Surveys\SurveySectionController;
 use App\Http\Controllers\Api\V1\Surveys\SurveyVersionController;
+use App\Http\Middleware\RequirePublicSurveyAccess;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Http\Request;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
+
+// Public survey access (spec §5.7/§5.8) — unauthenticated by design, and
+// deliberately on its own rate-limit tier separate from the admin API's
+// (a burst of anonymous respondents must never be able to exhaust the
+// same bucket an org's own admin traffic relies on). The respondent-facing
+// page (routes/web.php's "public.surveys.show") is reached only via a
+// signed link and stamps the session via GrantsPublicSurveyAccess; these
+// JSON endpoints are called by that page's own fetch() calls, which carry
+// no signature of their own, so they check that session grant instead
+// (RequirePublicSurveyAccess) rather than re-verifying a signature.
+//
+// EncryptCookies + StartSession + ValidateCsrfToken are added explicitly
+// rather than relying on Sanctum's statefulApi()/EnsureFrontendRequestsAreStateful,
+// which only runs its own inner session/CSRF pipeline when it heuristically
+// recognizes the request as "from the frontend" (matching Referer/Origin
+// against sanctum.stateful) — too fragile a foundation for guarantees this
+// route group needs on every request. CSRF is kept rather than dropped so
+// this group stays consistent with every other stateful, cookie-backed
+// write path in the app; resources/js/bootstrap.js already attaches
+// X-CSRF-TOKEN to every axios request, so the public form's own fetch
+// calls satisfy it for free.
+Route::middleware(['throttle:public-survey', EncryptCookies::class, StartSession::class, ValidateCsrfToken::class, RequirePublicSurveyAccess::class])
+    ->prefix('public/surveys/{survey}')
+    ->group(function () {
+        Route::get('/', [PublicSurveyController::class, 'show'])->name('public.surveys.api.show');
+        Route::post('/otp', [PublicSurveyOtpController::class, 'send'])->middleware('throttle:public-survey-otp')->name('public.surveys.otp.send');
+        Route::post('/otp/verify', [PublicSurveyOtpController::class, 'verify'])->middleware('throttle:public-survey-otp')->name('public.surveys.otp.verify');
+        Route::post('/responses', [PublicSurveyResponseController::class, 'store'])->name('public.surveys.responses.store');
+    });
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
@@ -17,6 +53,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('surveys', SurveyController::class)->only(['index', 'store', 'show', 'update', 'destroy']);
     Route::post('surveys/{survey}/publish', [SurveyController::class, 'publish'])->name('surveys.publish');
     Route::post('surveys/{survey}/draft', [SurveyController::class, 'createDraft'])->name('surveys.create-draft');
+    Route::get('surveys/{survey}/public-link', [SurveyController::class, 'publicLink'])->name('surveys.public-link');
 
     Route::get('survey-versions/{version}', [SurveyVersionController::class, 'show'])->name('survey-versions.show');
 

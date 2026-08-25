@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Surveys;
 
 use App\Actions\Surveys\CreateNewDraftVersion;
 use App\Actions\Surveys\CreateSurvey;
+use App\Actions\Surveys\GeneratePublicSurveyLink;
 use App\Actions\Surveys\PublishSurveyVersion;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Surveys\StoreSurveyRequest;
@@ -80,5 +81,16 @@ class SurveyController extends Controller
         $draft = $createNewDraftVersion->handle($survey);
 
         return new SurveyVersionResource($draft->load(['sections.questions.options', 'rules']));
+    }
+
+    public function publicLink(Survey $survey, GeneratePublicSurveyLink $generatePublicSurveyLink): JsonResponse
+    {
+        $this->authorize('view', $survey);
+
+        if (! $survey->isPublished()) {
+            return response()->json(['message' => 'This survey has no published version to link to.'], 422);
+        }
+
+        return response()->json(['url' => $generatePublicSurveyLink->handle($survey)]);
     }
 }

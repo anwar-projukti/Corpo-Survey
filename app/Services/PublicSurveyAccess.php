@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Enums\DuplicatePolicy;
 use App\Enums\ResponseStatus;
+use App\Models\Survey;
 use App\Models\SurveyResponse;
 use App\Models\SurveyVersion;
 use Illuminate\Http\JsonResponse;
@@ -26,6 +27,34 @@ class PublicSurveyAccess
     private const COOKIE_NAME = 'respondent_id';
 
     private const COOKIE_MINUTES = 60 * 24 * 365;
+
+    /**
+     * Session key recording which surveys this browser session has proven
+     * access to via a valid signed link (App\Http\Middleware\GrantsPublicSurveyAccess),
+     * checked by App\Http\Middleware\RequirePublicSurveyAccess before the
+     * public JSON API — which has no signature of its own to verify — will
+     * serve a request for that survey.
+     */
+    private const GRANT_SESSION_KEY = 'public_survey_access';
+
+    /**
+     * Records that this session reached the given survey via a request
+     * that already passed the "signed" middleware — called only from the
+     * page route itself, never from the JSON API.
+     */
+    public function grantAccess(Request $request, Survey $survey): void
+    {
+        $granted = $request->session()->get(self::GRANT_SESSION_KEY, []);
+        $granted[$survey->id] = true;
+        $request->session()->put(self::GRANT_SESSION_KEY, $granted);
+    }
+
+    public function hasAccess(Request $request, Survey $survey): bool
+    {
+        $granted = $request->session()->get(self::GRANT_SESSION_KEY, []);
+
+        return $granted[$survey->id] ?? false;
+    }
 
     public function fingerprint(Request $request): string
     {

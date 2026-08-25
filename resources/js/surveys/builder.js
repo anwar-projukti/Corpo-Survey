@@ -221,5 +221,16 @@ export default function surveyBuilder(surveyId) {
                 await this.load();
             });
         },
+
+        // --- Public link ---------------------------------------------------
+
+        publicLinkCopied: false,
+
+        async copyPublicLink() {
+            const url = await api.surveys.publicLink(this.surveyId);
+            await navigator.clipboard.writeText(url);
+            this.publicLinkCopied = true;
+            setTimeout(() => (this.publicLinkCopied = false), 2000);
+        },
     };
 }

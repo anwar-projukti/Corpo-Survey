@@ -110,6 +110,9 @@ return [
         'saving_progress' => 'Saving your progress…',
         'captcha_failed' => 'We could not verify you are human. Please try again.',
         'rate_limited' => 'Too many attempts. Please try again shortly.',
+        'file_upload_unavailable' => 'File upload is not yet available for this question.',
+        'yes' => 'Yes',
+        'no' => 'No',
     ],
 
     // Survey builder UI
@@ -150,6 +153,8 @@ return [
         'start_new_draft' => 'Start new draft',
         'publish' => 'Publish',
         'publish_confirm' => 'Publish this draft? It will become the live version and the previous published version will be archived.',
+        'copy_public_link' => 'Copy public link',
+        'public_link_copied' => 'Link copied!',
         'published_success' => 'Survey published.',
         'draft_created' => 'New draft created.',
         'preview' => 'Preview',

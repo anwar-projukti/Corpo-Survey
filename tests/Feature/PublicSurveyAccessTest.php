@@ -1,11 +1,20 @@
 <?php
 
 use App\Enums\DuplicatePolicy;
+use App\Models\Survey;
 use App\Models\SurveyResponse;
 use App\Models\SurveyVersion;
 use App\Services\PublicSurveyAccess;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+
+function requestWithSession(): Request
+{
+    $request = Request::create('/');
+    $request->setLaravelSession(app('session.store'));
+
+    return $request;
+}
 
 test('two requests with the same respondent cookie produce the same fingerprint', function () {
     $service = new PublicSurveyAccess;
@@ -103,4 +112,46 @@ test('a field agent collected response with no fingerprint never counts toward t
     $service = new PublicSurveyAccess;
 
     expect($service->hasReachedDuplicateLimit($version, ''))->toBeFalse();
+});
+
+test('a survey has no access grant by default', function () {
+    $survey = Survey::factory()->create();
+    $service = new PublicSurveyAccess;
+
+    expect($service->hasAccess(requestWithSession(), $survey))->toBeFalse();
+});
+
+test('granting access makes hasAccess true for that survey on the same session', function () {
+    $survey = Survey::factory()->create();
+    $service = new PublicSurveyAccess;
+    $request = requestWithSession();
+
+    $service->grantAccess($request, $survey);
+
+    expect($service->hasAccess($request, $survey))->toBeTrue();
+});
+
+test('a grant for one survey does not extend to another on the same session', function () {
+    $surveyA = Survey::factory()->create();
+    $surveyB = Survey::factory()->create();
+    $service = new PublicSurveyAccess;
+    $request = requestWithSession();
+
+    $service->grantAccess($request, $surveyA);
+
+    expect($service->hasAccess($request, $surveyA))->toBeTrue()
+        ->and($service->hasAccess($request, $surveyB))->toBeFalse();
+});
+
+test('granting access for a second survey does not clear the grant for the first', function () {
+    $surveyA = Survey::factory()->create();
+    $surveyB = Survey::factory()->create();
+    $service = new PublicSurveyAccess;
+    $request = requestWithSession();
+
+    $service->grantAccess($request, $surveyA);
+    $service->grantAccess($request, $surveyB);
+
+    expect($service->hasAccess($request, $surveyA))->toBeTrue()
+        ->and($service->hasAccess($request, $surveyB))->toBeTrue();
 });

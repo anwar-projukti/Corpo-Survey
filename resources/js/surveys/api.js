@@ -21,6 +21,7 @@ export default {
         destroy: (id) => axios.delete(`${BASE}/surveys/${id}`).then((r) => r.data),
         publish: (id) => axios.post(`${BASE}/surveys/${id}/publish`).then((r) => r.data.data),
         createDraft: (id) => axios.post(`${BASE}/surveys/${id}/draft`).then((r) => r.data.data),
+        publicLink: (id) => axios.get(`${BASE}/surveys/${id}/public-link`).then((r) => r.data.url),
     },
 
     versions: {

@@ -17,7 +17,7 @@ class GeneratePublicSurveyLink
     public function handle(Survey $survey, ?\DateTimeInterface $expiresAt = null): string
     {
         return $expiresAt
-            ? URL::temporarySignedRoute('public.surveys.show', $expiresAt, ['survey' => $survey->slug])
-            : URL::signedRoute('public.surveys.show', ['survey' => $survey->slug]);
+            ? URL::temporarySignedRoute('public.surveys.show', $expiresAt, ['survey' => $survey->id])
+            : URL::signedRoute('public.surveys.show', ['survey' => $survey->id]);
     }
 }

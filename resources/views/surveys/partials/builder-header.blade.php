@@ -42,6 +42,14 @@
 
             <button
                 type="button"
+                x-show="survey.current_published_version"
+                @click="copyPublicLink()"
+                class="rounded-control border border-border-subtle dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-surface-subtle dark:hover:bg-gray-800 text-sm font-medium px-3 py-1.5 transition"
+                x-text="publicLinkCopied ? @js(__('surveys.builder.public_link_copied')) : @js(__('surveys.builder.copy_public_link'))"
+            ></button>
+
+            <button
+                type="button"
                 x-show="isDraftEditable"
                 @click="publish()"
                 class="rounded-control bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-3 py-1.5 transition"
