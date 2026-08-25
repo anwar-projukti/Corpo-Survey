@@ -21,6 +21,11 @@ return Application::configure(basePath: dirname(__DIR__))
             EnsureSessionIsNotExpired::class,
             RequireTwoFactorForPrivilegedRoles::class,
         ]);
+
+        // Lets the same-origin Blade/Alpine builder UI call /api/v1/...
+        // using the ordinary session cookie (Sanctum SPA auth) instead of
+        // needing a separate bearer token.
+        $middleware->statefulApi();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
