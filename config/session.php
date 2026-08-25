@@ -38,6 +38,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Absolute Session Lifetime
+    |--------------------------------------------------------------------------
+    |
+    | In addition to the idle lifetime above, this caps how long a session
+    | may remain valid in total, in minutes, regardless of activity. Enforced
+    | by App\Http\Middleware\EnsureSessionIsNotExpired.
+    |
+    */
+
+    'absolute_lifetime' => (int) env('SESSION_ABSOLUTE_LIFETIME', 480),
+
+    /*
+    |--------------------------------------------------------------------------
     | Session Encryption
     |--------------------------------------------------------------------------
     |
