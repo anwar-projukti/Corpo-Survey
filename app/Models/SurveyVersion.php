@@ -54,6 +54,11 @@ class SurveyVersion extends Model
         return $this->hasMany(SurveyRule::class)->orderBy('order');
     }
 
+    public function responses(): HasMany
+    {
+        return $this->hasMany(SurveyResponse::class, 'survey_version_id');
+    }
+
     public function isDraft(): bool
     {
         return $this->status === SurveyVersionStatus::Draft;

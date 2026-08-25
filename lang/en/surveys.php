@@ -65,14 +65,13 @@ return [
         'map_location' => 'Map Location',
     ],
 
-    // Public survey submission access modes (spec §5.8)
-    'access_mode' => [
+    // Public survey access settings (spec §5.8)
+    'duplicate_policy' => [
         'multiple_responses' => 'Allow multiple responses',
         'one_response_per_user' => 'One response per user',
-        'require_authentication' => 'Require authentication',
-        'require_otp' => 'Require OTP',
-        'anonymous' => 'Anonymous response',
     ],
+    'require_otp' => 'Require OTP',
+    'anonymize_responses' => 'Anonymous response (strip IP/user agent)',
 
     // Survey builder UI
     'builder' => [

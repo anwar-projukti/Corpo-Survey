@@ -38,6 +38,11 @@ class Survey extends Model
         return $this->hasMany(SurveyVersion::class);
     }
 
+    public function responses(): HasMany
+    {
+        return $this->hasMany(SurveyResponse::class);
+    }
+
     public function currentDraftVersion(): BelongsTo
     {
         return $this->belongsTo(SurveyVersion::class, 'current_draft_version_id');

@@ -45,6 +45,11 @@ class SurveyQuestion extends Model
         return $this->hasMany(QuestionOption::class)->orderBy('order');
     }
 
+    public function answers(): HasMany
+    {
+        return $this->hasMany(ResponseAnswer::class, 'survey_question_id');
+    }
+
     /**
      * The validated config DTO — never trust config JSON as-is; go through
      * this accessor (or QuestionConfigData::validate() at write time)

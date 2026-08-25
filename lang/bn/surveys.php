@@ -65,14 +65,13 @@ return [
         'map_location' => 'মানচিত্র অবস্থান',
     ],
 
-    // Public survey submission access modes (spec §5.8)
-    'access_mode' => [
+    // Public survey access settings (spec §5.8)
+    'duplicate_policy' => [
         'multiple_responses' => 'একাধিক উত্তর দেওয়ার অনুমতি',
         'one_response_per_user' => 'প্রতি ব্যবহারকারী একটি উত্তর',
-        'require_authentication' => 'লগ ইন আবশ্যক',
-        'require_otp' => 'ওটিপি আবশ্যক',
-        'anonymous' => 'বেনামী উত্তর',
     ],
+    'require_otp' => 'ওটিপি আবশ্যক',
+    'anonymize_responses' => 'বেনামী উত্তর (আইপি/ইউজার এজেন্ট বাদ)',
 
     // Survey builder UI
     'builder' => [
