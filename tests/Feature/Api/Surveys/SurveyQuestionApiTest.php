@@ -79,6 +79,27 @@ test('a matrix question with valid config succeeds', function () {
     $response->assertCreated();
 });
 
+test('an empty-string matrix row is rejected (ConvertEmptyStringsToNull turns it into null first)', function () {
+    // The builder's "Add question" flow originally defaulted a fresh
+    // matrix question's rows/columns to [''], which Laravel's own
+    // ConvertEmptyStringsToNull middleware converts to [null] before this
+    // validation ever runs — failing the 'string' rule. Locks in why the
+    // JS-side default must be a non-empty placeholder instead.
+    $user = editorForQuestions();
+    $section = draftSectionFor($user);
+
+    $response = $this->actingAs($user)->postJson("/api/v1/survey-sections/{$section->id}/questions", [
+        'type' => 'matrix',
+        'label' => 'Rate these',
+        'config' => [
+            'matrixRows' => [''],
+            'matrixColumns' => ['Column'],
+        ],
+    ]);
+
+    $response->assertUnprocessable()->assertJsonValidationErrors('config.matrixRows.0');
+});
+
 test('a number question rejects max less than min', function () {
     $user = editorForQuestions();
     $section = draftSectionFor($user);

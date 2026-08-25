@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\SurveyPageController;
 use App\Http\Controllers\ThemeController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,6 +17,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('home');
 
     Route::post('/theme', ThemeController::class)->name('theme.update');
+
+    Route::get('/surveys', [SurveyPageController::class, 'index'])->name('surveys.index');
+    Route::get('/surveys/{survey}', [SurveyPageController::class, 'show'])->name('surveys.show');
 
     // Placeholder until Phase 2 builds the real settings/security UI —
     // required now so RequireTwoFactorForPrivilegedRoles has somewhere
