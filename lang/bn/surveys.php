@@ -73,6 +73,45 @@ return [
     'require_otp' => 'ওটিপি আবশ্যক',
     'anonymize_responses' => 'বেনামী উত্তর (আইপি/ইউজার এজেন্ট বাদ)',
 
+    // One-time code verification for public survey access (spec §5.8)
+    'otp' => [
+        'mail_subject' => ':survey এর জন্য আপনার যাচাইকরণ কোড',
+        'mail_greeting' => 'যাচাইকরণ কোড',
+        'mail_body' => '":survey" এ চালিয়ে যেতে এই কোডটি ব্যবহার করুন। এটি ১০ মিনিটের মধ্যে মেয়াদ শেষ হবে।',
+        'mail_expiry_notice' => 'আপনি যদি এই কোডটি অনুরোধ না করে থাকেন, তাহলে এই ইমেইলটি উপেক্ষা করতে পারেন।',
+        'mail_ignore_notice' => 'এই কোডটি শুধুমাত্র একবার ব্যবহার করা যাবে।',
+        'destination_label' => 'ইমেইল ঠিকানা',
+        'destination_placeholder' => 'you@example.com',
+        'request_button' => 'যাচাইকরণ কোড পাঠান',
+        'code_label' => 'যাচাইকরণ কোড',
+        'code_placeholder' => '৬-সংখ্যার কোড লিখুন',
+        'verify_button' => 'যাচাই করুন',
+        'resend_button' => 'কোড পুনরায় পাঠান',
+        'sent_confirmation' => 'একটি যাচাইকরণ কোড পাঠানো হয়েছে।',
+        'invalid_code' => 'কোডটি ভুল অথবা মেয়াদ শেষ হয়ে গেছে।',
+        'too_many_attempts' => 'অনেকবার চেষ্টা করা হয়েছে। অনুগ্রহ করে নতুন কোড অনুরোধ করুন।',
+    ],
+
+    // Public respondent-facing survey form
+    'public' => [
+        'start_button' => 'শুরু করুন',
+        'next_button' => 'পরবর্তী',
+        'previous_button' => 'পূর্ববর্তী',
+        'submit_button' => 'জমা দিন',
+        'progress' => ':total এর মধ্যে :current',
+        'required_indicator' => '*',
+        'thank_you_title' => 'ধন্যবাদ!',
+        'thank_you_body' => 'আপনার উত্তর রেকর্ড করা হয়েছে।',
+        'closed_title' => 'এই জরিপটি উত্তর গ্রহণ করছে না',
+        'closed_body' => 'এই জরিপটি আর উপলব্ধ নেই।',
+        'duplicate_title' => 'আপনি ইতিমধ্যে উত্তর দিয়েছেন',
+        'duplicate_body' => 'এই জরিপের জন্য প্রতি ব্যক্তি শুধুমাত্র একটি উত্তর দিতে পারবেন।',
+        'validation_error' => 'অনুগ্রহ করে আপনার উত্তরগুলো যাচাই করে আবার চেষ্টা করুন।',
+        'saving_progress' => 'আপনার অগ্রগতি সংরক্ষণ করা হচ্ছে…',
+        'captcha_failed' => 'আমরা যাচাই করতে পারিনি যে আপনি মানুষ। অনুগ্রহ করে আবার চেষ্টা করুন।',
+        'rate_limited' => 'অনেকবার চেষ্টা করা হয়েছে। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।',
+    ],
+
     // Survey builder UI
     'builder' => [
         'all_surveys' => 'সব জরিপ',

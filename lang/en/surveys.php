@@ -73,6 +73,45 @@ return [
     'require_otp' => 'Require OTP',
     'anonymize_responses' => 'Anonymous response (strip IP/user agent)',
 
+    // One-time code verification for public survey access (spec §5.8)
+    'otp' => [
+        'mail_subject' => 'Your verification code for :survey',
+        'mail_greeting' => 'Verification code',
+        'mail_body' => 'Use this code to continue with ":survey". It expires in 10 minutes.',
+        'mail_expiry_notice' => 'If you did not request this code, you can safely ignore this email.',
+        'mail_ignore_notice' => 'This code can only be used once.',
+        'destination_label' => 'Email address',
+        'destination_placeholder' => 'you@example.com',
+        'request_button' => 'Send verification code',
+        'code_label' => 'Verification code',
+        'code_placeholder' => 'Enter the 6-digit code',
+        'verify_button' => 'Verify',
+        'resend_button' => 'Resend code',
+        'sent_confirmation' => 'A verification code has been sent.',
+        'invalid_code' => 'That code is incorrect or has expired.',
+        'too_many_attempts' => 'Too many attempts. Please request a new code.',
+    ],
+
+    // Public respondent-facing survey form
+    'public' => [
+        'start_button' => 'Start',
+        'next_button' => 'Next',
+        'previous_button' => 'Previous',
+        'submit_button' => 'Submit',
+        'progress' => ':current of :total',
+        'required_indicator' => '*',
+        'thank_you_title' => 'Thank you!',
+        'thank_you_body' => 'Your response has been recorded.',
+        'closed_title' => 'This survey is not accepting responses',
+        'closed_body' => 'This survey is no longer available.',
+        'duplicate_title' => 'You have already responded',
+        'duplicate_body' => 'Only one response per person is allowed for this survey.',
+        'validation_error' => 'Please check your answers and try again.',
+        'saving_progress' => 'Saving your progress…',
+        'captcha_failed' => 'We could not verify you are human. Please try again.',
+        'rate_limited' => 'Too many attempts. Please try again shortly.',
+    ],
+
     // Survey builder UI
     'builder' => [
         'all_surveys' => 'All Surveys',
