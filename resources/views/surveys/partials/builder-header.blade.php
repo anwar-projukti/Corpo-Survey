@@ -47,6 +47,13 @@
                 {{ __('surveys.builder.responses') }}
             </a>
 
+            <a
+                :href="`/surveys/${surveyId}/analytics`"
+                class="rounded-control border border-border-subtle dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-surface-subtle dark:hover:bg-gray-800 text-sm font-medium px-3 py-1.5 transition"
+            >
+                {{ __('surveys.builder.analytics') }}
+            </a>
+
             <button
                 type="button"
                 @click="openAssignments()"

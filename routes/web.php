@@ -4,6 +4,7 @@ use App\Http\Controllers\ConfirmPasswordForTwoFactorController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MyFieldSurveyPageController;
 use App\Http\Controllers\PublicSurveyPageController;
+use App\Http\Controllers\SurveyAnalyticsPageController;
 use App\Http\Controllers\SurveyPageController;
 use App\Http\Controllers\SurveyResponsePageController;
 use App\Http\Controllers\ThemeController;
@@ -37,6 +38,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // view at a time, matching how the backend itself is scoped.
     Route::get('/surveys/{survey}/responses', [SurveyResponsePageController::class, 'index'])->name('responses.index');
     Route::get('/surveys/{survey}/responses/{response}', [SurveyResponsePageController::class, 'show'])->name('responses.show');
+
+    // Analytics dashboard (spec §9) — one survey's overview metrics,
+    // trend, drop-off, and per-question distributions at a time.
+    Route::get('/surveys/{survey}/analytics', [SurveyAnalyticsPageController::class, 'show'])->name('analytics.show');
 
     // Door-to-door field collection portal (spec §7).
     Route::get('/my/surveys', [MyFieldSurveyPageController::class, 'index'])->name('my.surveys.index');

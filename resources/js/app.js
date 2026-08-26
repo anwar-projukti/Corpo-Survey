@@ -10,6 +10,7 @@ import fieldSurveyForm from './field/field-form';
 import fieldSurveysIndex from './field/surveys-index';
 import responseTable from './responses/response-table';
 import responseDetail from './responses/response-detail';
+import analyticsDashboard from './analytics/dashboard';
 
 window.Alpine = Alpine;
 window.surveysApi = surveysApi;
@@ -22,6 +23,7 @@ Alpine.data('fieldSurveyForm', fieldSurveyForm);
 Alpine.data('fieldSurveysIndex', fieldSurveysIndex);
 Alpine.data('responseTable', responseTable);
 Alpine.data('responseDetail', responseDetail);
+Alpine.data('analyticsDashboard', analyticsDashboard);
 registerSortable(Alpine);
 
 Alpine.start();
