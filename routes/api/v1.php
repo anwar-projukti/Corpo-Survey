@@ -60,7 +60,13 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
-    Route::apiResource('surveys', SurveyController::class)->only(['index', 'store', 'show', 'update', 'destroy']);
+    // Named with an api. prefix so its auto-generated route names
+    // (surveys.index, surveys.show, ...) don't collide with the Blade
+    // page routes of the same name in routes/web.php — apiResource()'s
+    // default names aren't namespaced by the api/v1 prefix the URLs
+    // themselves get, and whichever route file loads last silently wins
+    // route('surveys.index') everywhere it's called.
+    Route::apiResource('surveys', SurveyController::class)->only(['index', 'store', 'show', 'update', 'destroy'])->names('api.surveys');
     Route::post('surveys/{survey}/publish', [SurveyController::class, 'publish'])->name('surveys.publish');
     Route::post('surveys/{survey}/draft', [SurveyController::class, 'createDraft'])->name('surveys.create-draft');
     Route::get('surveys/{survey}/public-link', [SurveyController::class, 'publicLink'])->name('surveys.public-link');
@@ -95,9 +101,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Response management (spec §8) — the advanced response table, detail
     // view, approve/reject/archive review, notes, and audited answer edits.
-    Route::get('surveys/{survey}/responses', [SurveyResponseController::class, 'index'])->name('responses.index');
-    Route::get('surveys/{survey}/responses/{response}', [SurveyResponseController::class, 'show'])->name('responses.show');
-    Route::delete('surveys/{survey}/responses/{response}', [SurveyResponseController::class, 'destroy'])->name('responses.destroy');
+    // Named with an api. prefix — see the apiResource('surveys', ...) note
+    // above; routes/web.php has its own responses.index/responses.show
+    // for the Blade pages themselves.
+    Route::get('surveys/{survey}/responses', [SurveyResponseController::class, 'index'])->name('api.responses.index');
+    Route::get('surveys/{survey}/responses/{response}', [SurveyResponseController::class, 'show'])->name('api.responses.show');
+    Route::delete('surveys/{survey}/responses/{response}', [SurveyResponseController::class, 'destroy'])->name('api.responses.destroy');
 
     Route::post('responses/{response}/review', [ResponseReviewController::class, 'store'])->name('responses.review');
     Route::post('responses/{response}/notes', [ResponseNoteController::class, 'store'])->name('responses.notes.store');
@@ -105,7 +114,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Analytics (spec §9) — survey overview metrics, response trend,
     // per-question drop-off, and per-question answer distributions.
-    Route::get('surveys/{survey}/analytics', [SurveyAnalyticsController::class, 'show'])->name('analytics.show');
+    // Named with an api. prefix — routes/web.php has its own
+    // analytics.show for the Blade page itself.
+    Route::get('surveys/{survey}/analytics', [SurveyAnalyticsController::class, 'show'])->name('api.analytics.show');
 
     // Custom report builder (spec §9) — saved report configurations and
     // running one against live data.
@@ -122,7 +133,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // "if field user, filter" branch on the same routes — the access
     // pattern (assigned-only, self-scoped) is different enough to warrant
     // its own controllers.
-    Route::prefix('my')->name('my.')->group(function () {
+    // Named with an api. prefix — routes/web.php has its own
+    // my.surveys.index/my.surveys.show for the Blade pages themselves.
+    Route::prefix('my')->name('api.my.')->group(function () {
         Route::get('surveys', [MySurveyController::class, 'index'])->name('surveys.index');
         Route::get('surveys/{survey}', [MySurveyController::class, 'show'])->name('surveys.show');
         Route::post('surveys/{survey}/responses', [MyResponseController::class, 'store'])->name('surveys.responses.store');

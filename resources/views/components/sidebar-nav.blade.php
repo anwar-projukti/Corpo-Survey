@@ -22,21 +22,18 @@
             ],
         ],
         [
+            // Responses/analytics are reached per-survey (from that
+            // survey's own builder header) rather than as a standalone
+            // cross-survey list — spec §8/§9 never asked for one, so
+            // these have no destination of their own to link to yet.
             'label' => 'nav.responses',
             'route' => null,
-            'children' => [
-                ['label' => 'nav.all_responses', 'route' => null],
-                ['label' => 'nav.review', 'route' => null],
-                ['label' => 'nav.export_history', 'route' => null],
-            ],
+            'children' => [],
         ],
         [
             'label' => 'nav.analytics',
             'route' => null,
-            'children' => [
-                ['label' => 'nav.survey_analytics', 'route' => null],
-                ['label' => 'nav.reports', 'route' => null],
-            ],
+            'children' => [],
         ],
         [
             'label' => 'nav.respondents',
