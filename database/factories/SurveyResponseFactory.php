@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\CollectionMethod;
+use App\Enums\ResponseReviewStatus;
 use App\Enums\ResponseStatus;
 use App\Models\Organization;
 use App\Models\Survey;
@@ -32,6 +33,14 @@ class SurveyResponseFactory extends Factory
             'respondent_id' => null,
             'collection_method' => CollectionMethod::SelfServe,
             'status' => ResponseStatus::Complete,
+            // Explicit rather than relying on the DB column default: a
+            // factory-created model's in-memory instance never reflects a
+            // DB-side default value (Eloquent's create() doesn't re-fetch
+            // generated columns), so review_status would otherwise read as
+            // null in-memory even though the row itself is correctly
+            // 'pending' — surprising for anything that reads it right off
+            // the object create() just returned instead of a fresh() copy.
+            'review_status' => ResponseReviewStatus::Pending,
             'respondent_fingerprint' => hash('sha256', fake()->uuid()),
             'meta' => [],
             'ip_address' => fake()->ipv4(),
@@ -63,6 +72,13 @@ class SurveyResponseFactory extends Factory
             'collection_method' => CollectionMethod::FieldAgent,
             'collected_by_user_id' => User::factory(),
             'respondent_fingerprint' => null,
+        ]);
+    }
+
+    public function reviewStatus(ResponseReviewStatus $status): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'review_status' => $status,
         ]);
     }
 }

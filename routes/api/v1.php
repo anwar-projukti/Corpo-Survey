@@ -6,6 +6,10 @@ use App\Http\Controllers\Api\V1\My\MySurveyController;
 use App\Http\Controllers\Api\V1\PublicSurveys\PublicSurveyController;
 use App\Http\Controllers\Api\V1\PublicSurveys\PublicSurveyOtpController;
 use App\Http\Controllers\Api\V1\PublicSurveys\PublicSurveyResponseController;
+use App\Http\Controllers\Api\V1\Responses\ResponseAnswerController;
+use App\Http\Controllers\Api\V1\Responses\ResponseNoteController;
+use App\Http\Controllers\Api\V1\Responses\ResponseReviewController;
+use App\Http\Controllers\Api\V1\Responses\SurveyResponseController;
 use App\Http\Controllers\Api\V1\Surveys\QuestionOptionController;
 use App\Http\Controllers\Api\V1\Surveys\SurveyAssignmentController;
 use App\Http\Controllers\Api\V1\Surveys\SurveyController;
@@ -86,6 +90,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('survey-versions/{version}/rules', [SurveyRuleController::class, 'store'])->name('survey-rules.store');
     Route::patch('survey-rules/{rule}', [SurveyRuleController::class, 'update'])->name('survey-rules.update');
     Route::delete('survey-rules/{rule}', [SurveyRuleController::class, 'destroy'])->name('survey-rules.destroy');
+
+    // Response management (spec §8) — the advanced response table, detail
+    // view, approve/reject/archive review, notes, and audited answer edits.
+    Route::get('surveys/{survey}/responses', [SurveyResponseController::class, 'index'])->name('responses.index');
+    Route::get('surveys/{survey}/responses/{response}', [SurveyResponseController::class, 'show'])->name('responses.show');
+    Route::delete('surveys/{survey}/responses/{response}', [SurveyResponseController::class, 'destroy'])->name('responses.destroy');
+
+    Route::post('responses/{response}/review', [ResponseReviewController::class, 'store'])->name('responses.review');
+    Route::post('responses/{response}/notes', [ResponseNoteController::class, 'store'])->name('responses.notes.store');
+    Route::patch('response-answers/{answer}', [ResponseAnswerController::class, 'update'])->name('response-answers.update');
 
     // Door-to-door field collection (spec §7) — a Field User's own scoped
     // view: only surveys assigned to them, submission tagged with their

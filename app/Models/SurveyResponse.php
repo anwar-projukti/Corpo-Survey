@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CollectionMethod;
+use App\Enums\ResponseReviewStatus;
 use App\Enums\ResponseStatus;
 use App\Models\Concerns\BelongsToOrganization;
 use Database\Factories\SurveyResponseFactory;
@@ -22,6 +23,12 @@ class SurveyResponse extends Model
      * are deliberately absent — every one of them must be stamped
      * server-side from trusted context (the authenticated field user, the
      * request's own IP/UA), never accepted from client input (spec §7).
+     *
+     * review_status is also deliberately absent — every change to it must
+     * go through ReviewSurveyResponse (App\Actions\Responses), which is
+     * what actually writes the spec §5.11/§8 audit trail entry. Allowing
+     * it here would let a plain update() flip a response's review state
+     * with no record of who changed it or when.
      */
     protected $fillable = [
         'survey_id',
@@ -42,6 +49,7 @@ class SurveyResponse extends Model
         return [
             'collection_method' => CollectionMethod::class,
             'status' => ResponseStatus::class,
+            'review_status' => ResponseReviewStatus::class,
             'meta' => 'array',
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
@@ -75,8 +83,23 @@ class SurveyResponse extends Model
         return $this->hasMany(ResponseAnswer::class);
     }
 
+    public function notes(): HasMany
+    {
+        return $this->hasMany(ResponseNote::class)->latest();
+    }
+
     public function isComplete(): bool
     {
         return $this->status === ResponseStatus::Complete;
+    }
+
+    /**
+     * The only sanctioned way to change review_status — see the $fillable
+     * docblock above. Callers are expected to be the audited action
+     * (App\Actions\Responses\ReviewSurveyResponse), not a controller.
+     */
+    public function setReviewStatus(ResponseReviewStatus $status): void
+    {
+        $this->forceFill(['review_status' => $status])->save();
     }
 }
