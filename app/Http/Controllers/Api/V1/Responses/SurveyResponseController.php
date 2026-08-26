@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Responses;
 
+use App\Http\Controllers\Concerns\ResolvesSurveyVersion;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Responses\SurveyResponseResource;
 use App\Models\Survey;
@@ -22,6 +23,8 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
  */
 class SurveyResponseController extends Controller
 {
+    use ResolvesSurveyVersion;
+
     private const SORTABLE_COLUMNS = ['submitted_at', 'started_at', 'created_at', 'status', 'review_status'];
 
     public function index(Request $request, Survey $survey): AnonymousResourceCollection
@@ -65,21 +68,6 @@ class SurveyResponseController extends Controller
         $response->delete();
 
         return response()->json(['success' => true, 'message' => 'Response deleted.']);
-    }
-
-    private function resolveVersion(Request $request, Survey $survey): SurveyVersion
-    {
-        if ($request->filled('version_id')) {
-            $version = SurveyVersion::where('survey_id', $survey->id)->findOrFail($request->integer('version_id'));
-
-            return $version;
-        }
-
-        $version = $survey->currentPublishedVersion ?? $survey->currentDraftVersion;
-
-        abort_if($version === null, 404, 'This survey has no version to show responses for.');
-
-        return $version;
     }
 
     /**

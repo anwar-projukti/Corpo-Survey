@@ -64,6 +64,17 @@ class SurveyPolicy
         return $this->sameOrganization($user, $survey) && $user->can('survey.delete');
     }
 
+    /**
+     * Whether $user may view $survey's analytics dashboard (spec §9) —
+     * report.view rather than survey.view, since seeing aggregate metrics
+     * is a distinct concern from seeing the survey/builder itself (a
+     * Viewer has report.view but not survey.edit, for instance).
+     */
+    public function viewReports(User $user, Survey $survey): bool
+    {
+        return $this->sameOrganization($user, $survey) && $user->can('report.view');
+    }
+
     public function forceDelete(User $user, Survey $survey): bool
     {
         return false;

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Analytics\SurveyAnalyticsController;
 use App\Http\Controllers\Api\V1\My\MyResponseController;
 use App\Http\Controllers\Api\V1\My\MyStatsController;
 use App\Http\Controllers\Api\V1\My\MySurveyController;
@@ -100,6 +101,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('responses/{response}/review', [ResponseReviewController::class, 'store'])->name('responses.review');
     Route::post('responses/{response}/notes', [ResponseNoteController::class, 'store'])->name('responses.notes.store');
     Route::patch('response-answers/{answer}', [ResponseAnswerController::class, 'update'])->name('response-answers.update');
+
+    // Analytics (spec §9) — survey overview metrics, response trend,
+    // per-question drop-off, and per-question answer distributions.
+    Route::get('surveys/{survey}/analytics', [SurveyAnalyticsController::class, 'show'])->name('analytics.show');
 
     // Door-to-door field collection (spec §7) — a Field User's own scoped
     // view: only surveys assigned to them, submission tagged with their

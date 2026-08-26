@@ -6,6 +6,7 @@ use App\Enums\CollectionMethod;
 use App\Enums\ResponseReviewStatus;
 use App\Enums\ResponseStatus;
 use App\Models\Concerns\BelongsToOrganization;
+use App\Support\SurveyAnalytics;
 use Database\Factories\SurveyResponseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,6 +18,20 @@ class SurveyResponse extends Model
 {
     /** @use HasFactory<SurveyResponseFactory> */
     use BelongsToOrganization, HasFactory, SoftDeletes;
+
+    /**
+     * Analytics (spec §9) are cached and must never go stale by more than
+     * one write — every create/update/delete/restore of a response
+     * invalidates its version's cached metrics, rather than relying on
+     * every call site (SubmitSurveyResponse, ReviewSurveyResponse, the
+     * admin delete endpoint, ...) to remember to flush it individually.
+     */
+    protected static function booted(): void
+    {
+        static::saved(fn (self $response) => SurveyAnalytics::flush($response->survey_version_id));
+        static::deleted(fn (self $response) => SurveyAnalytics::flush($response->survey_version_id));
+        static::restored(fn (self $response) => SurveyAnalytics::flush($response->survey_version_id));
+    }
 
     /**
      * organization_id, collected_by_user_id, ip_address, and user_agent
