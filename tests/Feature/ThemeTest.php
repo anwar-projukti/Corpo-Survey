@@ -43,6 +43,11 @@ test('a privileged user without confirmed 2FA gets a JSON error from theme, not 
     // RequireTwoFactorForPrivilegedRoles would otherwise redirect this
     // request to two-factor.setup; a JSON-expecting caller must get a JSON
     // response back so the failure is visible instead of silently followed.
+    // Pinned explicitly since a local dev .env may have disabled
+    // enforcement (config/two-factor.php's TWO_FACTOR_ENFORCED escape
+    // hatch) — this test is specifically about enforced behavior.
+    config(['two-factor.enforced' => true]);
+
     $orgAdmin = User::factory()->create(['theme_preference' => 'system']);
     $orgAdmin->assignRole('Org Admin');
 

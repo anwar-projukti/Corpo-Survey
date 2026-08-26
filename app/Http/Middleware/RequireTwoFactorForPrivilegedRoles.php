@@ -13,6 +13,12 @@ use Symfony\Component\HttpFoundation\Response;
  * Users in those roles are redirected to the 2FA setup screen until they
  * complete it — every other route stays reachable so the redirect itself
  * doesn't create a lockout.
+ *
+ * Gated by config('two-factor.enforced') (env TWO_FACTOR_ENFORCED, default
+ * true) purely as a local-development escape hatch — e.g. no authenticator
+ * app handy, or the QR code's issuer field trips up a picky client like
+ * Microsoft Authenticator. Never disable this in a real deployment; the
+ * requirement itself is spec, not optional.
  */
 class RequireTwoFactorForPrivilegedRoles
 {
@@ -27,6 +33,7 @@ class RequireTwoFactorForPrivilegedRoles
      */
     private const EXEMPT_ROUTES = [
         'two-factor.setup',
+        'two-factor.setup.confirm-password',
         'two-factor.login',
         'two-factor.login.store',
         'two-factor.enable',
@@ -48,6 +55,10 @@ class RequireTwoFactorForPrivilegedRoles
 
     public function handle(Request $request, Closure $next): Response
     {
+        if (! config('two-factor.enforced')) {
+            return $next($request);
+        }
+
         /** @var User|null $user */
         $user = Auth::user();
 

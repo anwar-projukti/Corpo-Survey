@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ConfirmPasswordForTwoFactorController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PublicSurveyPageController;
 use App\Http\Controllers\SurveyPageController;
@@ -30,10 +31,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/surveys', [SurveyPageController::class, 'index'])->name('surveys.index');
     Route::get('/surveys/{survey}', [SurveyPageController::class, 'show'])->name('surveys.show');
 
-    // Placeholder until Phase 2 builds the real settings/security UI —
-    // required now so RequireTwoFactorForPrivilegedRoles has somewhere
-    // to send Org Admin/Super Admin users who haven't confirmed 2FA yet.
+    // The screen RequireTwoFactorForPrivilegedRoles sends Org Admin/Super
+    // Admin users to until they've enabled and confirmed 2FA (spec §5.1).
     Route::get('/two-factor-setup', function () {
         return view('two-factor-setup');
     })->name('two-factor.setup');
+
+    Route::get('/two-factor-setup/confirm-password', ConfirmPasswordForTwoFactorController::class)
+        ->name('two-factor.setup.confirm-password');
 });

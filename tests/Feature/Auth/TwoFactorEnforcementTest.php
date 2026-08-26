@@ -2,6 +2,23 @@
 
 use App\Models\User;
 
+// Every test below assumes enforcement is on, regardless of what
+// TWO_FACTOR_ENFORCED happens to be in whichever .env this suite boots
+// with (a local dev override, e.g. for testing without an authenticator
+// app, would otherwise leak into these and break them).
+beforeEach(fn () => config(['two-factor.enforced' => true]));
+
+test('two-factor enforcement can be disabled via config for local development', function () {
+    config(['two-factor.enforced' => false]);
+
+    $orgAdmin = User::factory()->create();
+    $orgAdmin->assignRole('Org Admin');
+
+    $response = $this->actingAs($orgAdmin)->get('/home');
+
+    $response->assertOk();
+});
+
 test('an Org Admin without 2FA confirmed is redirected to two-factor setup', function () {
     $orgAdmin = User::factory()->create();
     $orgAdmin->assignRole('Org Admin');
@@ -61,4 +78,26 @@ test('an Org Admin without 2FA can reach the password confirmation screen withou
     $response = $this->actingAs($orgAdmin)->get('/user/confirm-password');
 
     $response->assertOk();
+});
+
+test('an Org Admin without 2FA can reach the confirm-password redirect route the setup page uses', function () {
+    $orgAdmin = User::factory()->create();
+    $orgAdmin->assignRole('Org Admin');
+
+    $response = $this->actingAs($orgAdmin)->get(route('two-factor.setup.confirm-password'));
+
+    $response->assertRedirect(route('password.confirm'));
+});
+
+test('confirming a password via the two-factor confirm-password redirect route sends the user back to two-factor setup', function () {
+    $orgAdmin = User::factory()->create();
+    $orgAdmin->assignRole('Org Admin');
+
+    $this->actingAs($orgAdmin)->get(route('two-factor.setup.confirm-password'));
+
+    $response = $this->actingAs($orgAdmin)->post(route('password.confirm.store'), [
+        'password' => 'password',
+    ]);
+
+    $response->assertRedirect(route('two-factor.setup'));
 });

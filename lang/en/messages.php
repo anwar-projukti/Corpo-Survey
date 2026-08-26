@@ -121,6 +121,15 @@ return [
         'resend_verification' => 'Resend verification email',
         'two_factor_required_title' => 'Two-factor authentication required',
         'two_factor_required_body' => 'Your role requires two-factor authentication. Set it up to continue to the dashboard.',
+
+        'two_factor_setup_intro' => 'You\'ll need an authenticator app (Google Authenticator, Authy, 1Password, etc.) on your phone.',
+        'two_factor_enable_button' => 'Set up two-factor authentication',
+        'two_factor_scan_instructions' => 'Scan this QR code with your authenticator app, then enter the 6-digit code it shows.',
+        'two_factor_manual_setup' => 'Can\'t scan? Enter the code manually',
+        'two_factor_recovery_intro' => 'Save these recovery codes somewhere safe. Each one can be used once to sign in if you lose access to your authenticator app.',
+        'two_factor_continue_to_dashboard' => 'Continue to dashboard',
+        'two_factor_invalid_code' => 'That code is incorrect or has expired. Please try again.',
+        'two_factor_generic_error' => 'Something went wrong. Please try again.',
     ],
 
 ];
