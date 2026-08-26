@@ -7,6 +7,7 @@ use Database\Factories\SurveyFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -41,6 +42,16 @@ class Survey extends Model
     public function responses(): HasMany
     {
         return $this->hasMany(SurveyResponse::class);
+    }
+
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(SurveyAssignment::class);
+    }
+
+    public function assignedFieldUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'survey_assignments')->withTimestamps();
     }
 
     public function currentDraftVersion(): BelongsTo

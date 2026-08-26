@@ -1,9 +1,13 @@
 <?php
 
+use App\Http\Controllers\Api\V1\My\MyResponseController;
+use App\Http\Controllers\Api\V1\My\MyStatsController;
+use App\Http\Controllers\Api\V1\My\MySurveyController;
 use App\Http\Controllers\Api\V1\PublicSurveys\PublicSurveyController;
 use App\Http\Controllers\Api\V1\PublicSurveys\PublicSurveyOtpController;
 use App\Http\Controllers\Api\V1\PublicSurveys\PublicSurveyResponseController;
 use App\Http\Controllers\Api\V1\Surveys\QuestionOptionController;
+use App\Http\Controllers\Api\V1\Surveys\SurveyAssignmentController;
 use App\Http\Controllers\Api\V1\Surveys\SurveyController;
 use App\Http\Controllers\Api\V1\Surveys\SurveyQuestionController;
 use App\Http\Controllers\Api\V1\Surveys\SurveyRuleController;
@@ -55,6 +59,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('surveys/{survey}/draft', [SurveyController::class, 'createDraft'])->name('surveys.create-draft');
     Route::get('surveys/{survey}/public-link', [SurveyController::class, 'publicLink'])->name('surveys.public-link');
 
+    // Door-to-door field collection (spec §7) — which field users may
+    // collect responses for a given survey.
+    Route::get('surveys/{survey}/assignments', [SurveyAssignmentController::class, 'index'])->name('survey-assignments.index');
+    Route::post('surveys/{survey}/assignments', [SurveyAssignmentController::class, 'store'])->name('survey-assignments.store');
+    Route::delete('surveys/{survey}/assignments/{assignment}', [SurveyAssignmentController::class, 'destroy'])->name('survey-assignments.destroy');
+
     Route::get('survey-versions/{version}', [SurveyVersionController::class, 'show'])->name('survey-versions.show');
 
     Route::post('survey-versions/{version}/sections', [SurveySectionController::class, 'store'])->name('survey-sections.store');
@@ -75,4 +85,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('survey-versions/{version}/rules', [SurveyRuleController::class, 'store'])->name('survey-rules.store');
     Route::patch('survey-rules/{rule}', [SurveyRuleController::class, 'update'])->name('survey-rules.update');
     Route::delete('survey-rules/{rule}', [SurveyRuleController::class, 'destroy'])->name('survey-rules.destroy');
+
+    // Door-to-door field collection (spec §7) — a Field User's own scoped
+    // view: only surveys assigned to them, submission tagged with their
+    // own identity server-side, and their own running totals. Deliberately
+    // separate from the admin /surveys/... endpoints above rather than an
+    // "if field user, filter" branch on the same routes — the access
+    // pattern (assigned-only, self-scoped) is different enough to warrant
+    // its own controllers.
+    Route::prefix('my')->name('my.')->group(function () {
+        Route::get('surveys', [MySurveyController::class, 'index'])->name('surveys.index');
+        Route::get('surveys/{survey}', [MySurveyController::class, 'show'])->name('surveys.show');
+        Route::post('surveys/{survey}/responses', [MyResponseController::class, 'store'])->name('surveys.responses.store');
+        Route::get('stats', [MyStatsController::class, 'index'])->name('stats');
+    });
 });

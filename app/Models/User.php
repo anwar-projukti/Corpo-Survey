@@ -6,6 +6,8 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -62,6 +64,21 @@ class User extends Authenticatable implements MustVerifyEmail
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    public function surveyAssignments(): HasMany
+    {
+        return $this->hasMany(SurveyAssignment::class);
+    }
+
+    public function assignedSurveys(): BelongsToMany
+    {
+        return $this->belongsToMany(Survey::class, 'survey_assignments')->withTimestamps();
+    }
+
+    public function collectedResponses(): HasMany
+    {
+        return $this->hasMany(SurveyResponse::class, 'collected_by_user_id');
     }
 
     public function isSuperAdmin(): bool

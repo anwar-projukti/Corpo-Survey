@@ -48,6 +48,17 @@ class SurveyPolicy
         return $this->sameOrganization($user, $survey) && $user->can('survey.publish');
     }
 
+    /**
+     * Whether $user may assign/unassign field users to $survey for
+     * door-to-door collection (spec §7) — reuses survey.edit rather than a
+     * new permission, since managing who can collect for a survey is a
+     * facet of managing the survey itself.
+     */
+    public function assign(User $user, Survey $survey): bool
+    {
+        return $this->sameOrganization($user, $survey) && $user->can('survey.edit');
+    }
+
     public function restore(User $user, Survey $survey): bool
     {
         return $this->sameOrganization($user, $survey) && $user->can('survey.delete');

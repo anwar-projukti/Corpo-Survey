@@ -8,6 +8,7 @@ use App\Enums\RuleAction;
 use App\Models\Organization;
 use App\Models\Survey;
 use App\Models\SurveyVersion;
+use App\Models\User;
 use Illuminate\Validation\ValidationException;
 
 function buildSubmittableVersion(): array
@@ -182,4 +183,60 @@ test('an optional question left blank does not block submission', function () {
     );
 
     expect($response->answers)->toHaveCount(1);
+});
+
+test('a submission with a collector is marked field agent collection and tags collected_by_user_id', function () {
+    [$version, $name] = buildSubmittableVersion();
+    $fieldUser = User::factory()->create(['organization_id' => $version->survey->organization_id]);
+
+    $response = (new SubmitSurveyResponse)->handle(
+        $version,
+        [$name->id => 'Jane Doe'],
+        collector: $fieldUser,
+    );
+
+    expect($response->collection_method)->toBe(CollectionMethod::FieldAgent)
+        ->and($response->collected_by_user_id)->toBe($fieldUser->id);
+});
+
+test('a field agent submission never carries a respondent fingerprint even if one is passed', function () {
+    [$version, $name] = buildSubmittableVersion();
+    $fieldUser = User::factory()->create(['organization_id' => $version->survey->organization_id]);
+
+    $response = (new SubmitSurveyResponse)->handle(
+        $version,
+        [$name->id => 'Jane Doe'],
+        fingerprint: 'should-be-ignored',
+        collector: $fieldUser,
+    );
+
+    expect($response->respondent_fingerprint)->toBeNull();
+});
+
+test('a field agent submission never stores the field agents own ip or user agent', function () {
+    [$version, $name] = buildSubmittableVersion();
+    $fieldUser = User::factory()->create(['organization_id' => $version->survey->organization_id]);
+
+    $response = (new SubmitSurveyResponse)->handle(
+        $version,
+        [$name->id => 'Jane Doe'],
+        context: ['ip_address' => '203.0.113.5', 'user_agent' => 'FieldAgentDevice/1.0'],
+        collector: $fieldUser,
+    );
+
+    expect($response->ip_address)->toBeNull()
+        ->and($response->user_agent)->toBeNull();
+});
+
+test('a self serve submission has no collector and is marked self serve collection', function () {
+    [$version, $name] = buildSubmittableVersion();
+
+    $response = (new SubmitSurveyResponse)->handle(
+        $version,
+        [$name->id => 'Jane Doe'],
+        fingerprint: 'fp-1',
+    );
+
+    expect($response->collection_method)->toBe(CollectionMethod::SelfServe)
+        ->and($response->collected_by_user_id)->toBeNull();
 });
