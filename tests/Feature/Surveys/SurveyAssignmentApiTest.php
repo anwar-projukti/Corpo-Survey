@@ -108,3 +108,57 @@ test('an assignment belonging to a different survey cannot be deleted through th
     $response->assertNotFound();
     expect($surveyA->assignments()->count())->toBe(1);
 });
+
+test('the assignable users list includes org users not yet assigned', function () {
+    $organization = Organization::factory()->create();
+    $orgAdmin = User::factory()->create(['organization_id' => $organization->id]);
+    $orgAdmin->assignRole('Org Admin');
+    $unassigned = User::factory()->create(['organization_id' => $organization->id, 'name' => 'Unassigned User']);
+    $survey = Survey::factory()->create(['organization_id' => $organization->id]);
+
+    $response = $this->actingAs($orgAdmin)->getJson("/api/v1/surveys/{$survey->id}/assignable-users");
+
+    $response->assertOk();
+    expect(collect($response->json('data'))->pluck('id'))->toContain($unassigned->id);
+});
+
+test('the assignable users list excludes users already assigned', function () {
+    $organization = Organization::factory()->create();
+    $orgAdmin = User::factory()->create(['organization_id' => $organization->id]);
+    $orgAdmin->assignRole('Org Admin');
+    $alreadyAssigned = User::factory()->create(['organization_id' => $organization->id]);
+    $survey = Survey::factory()->create(['organization_id' => $organization->id]);
+    $survey->assignments()->create(['user_id' => $alreadyAssigned->id, 'assigned_by' => $orgAdmin->id]);
+
+    $response = $this->actingAs($orgAdmin)->getJson("/api/v1/surveys/{$survey->id}/assignable-users");
+
+    $response->assertOk();
+    expect(collect($response->json('data'))->pluck('id'))->not->toContain($alreadyAssigned->id);
+});
+
+test('the assignable users list excludes users from other organizations', function () {
+    $organization = Organization::factory()->create();
+    $otherOrg = Organization::factory()->create();
+    $orgAdmin = User::factory()->create(['organization_id' => $organization->id]);
+    $orgAdmin->assignRole('Org Admin');
+    $outsider = User::factory()->create(['organization_id' => $otherOrg->id]);
+    $survey = Survey::factory()->create(['organization_id' => $organization->id]);
+
+    $response = $this->actingAs($orgAdmin)->getJson("/api/v1/surveys/{$survey->id}/assignable-users");
+
+    $response->assertOk();
+    expect(collect($response->json('data'))->pluck('id'))->not->toContain($outsider->id);
+});
+
+test('a Super Admin sees the surveys own organization users in the assignable list, not their own (nonexistent) organization', function () {
+    $organization = Organization::factory()->create();
+    $superAdmin = User::factory()->superAdmin()->create();
+    $superAdmin->assignRole('Super Admin');
+    $orgUser = User::factory()->create(['organization_id' => $organization->id]);
+    $survey = Survey::factory()->create(['organization_id' => $organization->id]);
+
+    $response = $this->actingAs($superAdmin)->getJson("/api/v1/surveys/{$survey->id}/assignable-users");
+
+    $response->assertOk();
+    expect(collect($response->json('data'))->pluck('id'))->toContain($orgUser->id);
+});

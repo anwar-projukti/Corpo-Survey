@@ -42,6 +42,14 @@
 
             <button
                 type="button"
+                @click="openAssignments()"
+                class="rounded-control border border-border-subtle dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-surface-subtle dark:hover:bg-gray-800 text-sm font-medium px-3 py-1.5 transition"
+            >
+                {{ __('surveys.builder.manage_field_users') }}
+            </button>
+
+            <button
+                type="button"
                 x-show="survey.current_published_version"
                 @click="copyPublicLink()"
                 class="rounded-control border border-border-subtle dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-surface-subtle dark:hover:bg-gray-800 text-sm font-medium px-3 py-1.5 transition"

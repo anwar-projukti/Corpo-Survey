@@ -54,5 +54,7 @@
                 </div>
             </div>
         </template>
+
+        @include('surveys.partials.field-assignments-modal')
     </div>
 </x-app-layout>

@@ -232,5 +232,42 @@ export default function surveyBuilder(surveyId) {
             this.publicLinkCopied = true;
             setTimeout(() => (this.publicLinkCopied = false), 2000);
         },
+
+        // --- Field assignments (spec §7) -----------------------------------
+
+        showAssignments: false,
+        assignments: [],
+        assignableUsers: [],
+        assignmentsLoading: false,
+
+        async openAssignments() {
+            this.showAssignments = true;
+            this.assignmentsLoading = true;
+            try {
+                [this.assignments, this.assignableUsers] = await Promise.all([
+                    api.assignments.list(this.surveyId),
+                    api.assignments.assignable(this.surveyId),
+                ]);
+            } finally {
+                this.assignmentsLoading = false;
+            }
+        },
+
+        async assignFieldUser(userId) {
+            await this.withSaving(async () => {
+                const assignment = await api.assignments.create(this.surveyId, userId);
+                this.assignments.push(assignment);
+                this.assignableUsers = this.assignableUsers.filter((u) => u.id !== userId);
+            });
+        },
+
+        async unassignFieldUser(assignment) {
+            await this.withSaving(async () => {
+                await api.assignments.destroy(this.surveyId, assignment.id);
+                this.assignments = this.assignments.filter((a) => a.id !== assignment.id);
+                this.assignableUsers.push(assignment.user);
+                this.assignableUsers.sort((a, b) => a.name.localeCompare(b.name));
+            });
+        },
     };
 }

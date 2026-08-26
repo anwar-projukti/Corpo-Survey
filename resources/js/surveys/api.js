@@ -61,4 +61,13 @@ export default {
         update: (id, data) => axios.patch(`${BASE}/survey-rules/${id}`, data).then((r) => r.data.data),
         destroy: (id) => axios.delete(`${BASE}/survey-rules/${id}`).then((r) => r.data),
     },
+
+    assignments: {
+        list: (surveyId) => axios.get(`${BASE}/surveys/${surveyId}/assignments`).then((r) => r.data.data),
+        assignable: (surveyId) => axios.get(`${BASE}/surveys/${surveyId}/assignable-users`).then((r) => r.data.data),
+        create: (surveyId, userId) =>
+            axios.post(`${BASE}/surveys/${surveyId}/assignments`, { user_id: userId }).then((r) => r.data.data),
+        destroy: (surveyId, assignmentId) =>
+            axios.delete(`${BASE}/surveys/${surveyId}/assignments/${assignmentId}`).then((r) => r.data),
+    },
 };

@@ -62,6 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Door-to-door field collection (spec §7) — which field users may
     // collect responses for a given survey.
     Route::get('surveys/{survey}/assignments', [SurveyAssignmentController::class, 'index'])->name('survey-assignments.index');
+    Route::get('surveys/{survey}/assignable-users', [SurveyAssignmentController::class, 'assignable'])->name('survey-assignments.assignable');
     Route::post('surveys/{survey}/assignments', [SurveyAssignmentController::class, 'store'])->name('survey-assignments.store');
     Route::delete('surveys/{survey}/assignments/{assignment}', [SurveyAssignmentController::class, 'destroy'])->name('survey-assignments.destroy');
 
