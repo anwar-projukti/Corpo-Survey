@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Analytics\SavedReportController;
 use App\Http\Controllers\Api\V1\Analytics\SurveyAnalyticsController;
 use App\Http\Controllers\Api\V1\My\MyResponseController;
 use App\Http\Controllers\Api\V1\My\MyStatsController;
@@ -105,6 +106,14 @@ Route::middleware('auth:sanctum')->group(function () {
     // Analytics (spec §9) — survey overview metrics, response trend,
     // per-question drop-off, and per-question answer distributions.
     Route::get('surveys/{survey}/analytics', [SurveyAnalyticsController::class, 'show'])->name('analytics.show');
+
+    // Custom report builder (spec §9) — saved report configurations and
+    // running one against live data.
+    Route::get('surveys/{survey}/saved-reports', [SavedReportController::class, 'index'])->name('saved-reports.index');
+    Route::post('surveys/{survey}/saved-reports', [SavedReportController::class, 'store'])->name('saved-reports.store');
+    Route::patch('saved-reports/{savedReport}', [SavedReportController::class, 'update'])->name('saved-reports.update');
+    Route::delete('saved-reports/{savedReport}', [SavedReportController::class, 'destroy'])->name('saved-reports.destroy');
+    Route::get('saved-reports/{savedReport}/run', [SavedReportController::class, 'run'])->name('saved-reports.run');
 
     // Door-to-door field collection (spec §7) — a Field User's own scoped
     // view: only surveys assigned to them, submission tagged with their

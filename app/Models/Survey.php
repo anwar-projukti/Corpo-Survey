@@ -49,6 +49,11 @@ class Survey extends Model
         return $this->hasMany(SurveyAssignment::class);
     }
 
+    public function savedReports(): HasMany
+    {
+        return $this->hasMany(SavedReport::class);
+    }
+
     public function assignedFieldUsers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'survey_assignments')->withTimestamps();
