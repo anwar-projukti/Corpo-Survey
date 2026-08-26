@@ -8,6 +8,8 @@ import publicSurveyForm from './surveys/public-form';
 import twoFactorSetup from './two-factor-setup';
 import fieldSurveyForm from './field/field-form';
 import fieldSurveysIndex from './field/surveys-index';
+import responseTable from './responses/response-table';
+import responseDetail from './responses/response-detail';
 
 window.Alpine = Alpine;
 window.surveysApi = surveysApi;
@@ -18,6 +20,8 @@ Alpine.data('publicSurveyForm', publicSurveyForm);
 Alpine.data('twoFactorSetup', twoFactorSetup);
 Alpine.data('fieldSurveyForm', fieldSurveyForm);
 Alpine.data('fieldSurveysIndex', fieldSurveysIndex);
+Alpine.data('responseTable', responseTable);
+Alpine.data('responseDetail', responseDetail);
 registerSortable(Alpine);
 
 Alpine.start();

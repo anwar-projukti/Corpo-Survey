@@ -48,6 +48,21 @@ test('an Org Admin can list responses for a survey', function () {
     $response->assertOk()->assertJsonCount(3, 'data');
 });
 
+test('the response list includes each responses answers, not just its metadata', function () {
+    // Regression test: the index endpoint originally eager-loaded only
+    // collector, leaving answers unloaded — every answer cell in the
+    // response table silently rendered blank since
+    // SurveyResponseResource::answers is whenLoaded('answers').
+    [$organization, $admin] = orgAdminForResponses();
+    [$survey, $version, $question] = surveyWithPublishedVersionAndQuestion($organization->id);
+    $surveyResponse = SurveyResponse::factory()->create(['organization_id' => $organization->id, 'survey_id' => $survey->id, 'survey_version_id' => $version->id]);
+    ResponseAnswer::factory()->create(['survey_response_id' => $surveyResponse->id, 'survey_question_id' => $question->id, 'value' => 42]);
+
+    $response = $this->actingAs($admin)->getJson("/api/v1/surveys/{$survey->id}/responses");
+
+    $response->assertOk()->assertJsonPath('data.0.answers.0.value', 42);
+});
+
 test('the response list defaults to the currently published version', function () {
     [$organization, $admin] = orgAdminForResponses();
     [$survey, $publishedVersion] = surveyWithPublishedVersionAndQuestion($organization->id);

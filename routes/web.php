@@ -5,6 +5,7 @@ use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MyFieldSurveyPageController;
 use App\Http\Controllers\PublicSurveyPageController;
 use App\Http\Controllers\SurveyPageController;
+use App\Http\Controllers\SurveyResponsePageController;
 use App\Http\Controllers\ThemeController;
 use App\Http\Middleware\GrantsPublicSurveyAccess;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +32,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/surveys', [SurveyPageController::class, 'index'])->name('surveys.index');
     Route::get('/surveys/{survey}', [SurveyPageController::class, 'show'])->name('surveys.show');
+
+    // Response management (spec §8) — one survey's response table/detail
+    // view at a time, matching how the backend itself is scoped.
+    Route::get('/surveys/{survey}/responses', [SurveyResponsePageController::class, 'index'])->name('responses.index');
+    Route::get('/surveys/{survey}/responses/{response}', [SurveyResponsePageController::class, 'show'])->name('responses.show');
 
     // Door-to-door field collection portal (spec §7).
     Route::get('/my/surveys', [MyFieldSurveyPageController::class, 'index'])->name('my.surveys.index');

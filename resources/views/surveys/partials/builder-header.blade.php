@@ -40,6 +40,13 @@
 
             <span x-show="saving" class="text-xs text-gray-400">{{ __('surveys.builder.saving') }}</span>
 
+            <a
+                :href="`/surveys/${surveyId}/responses`"
+                class="rounded-control border border-border-subtle dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-surface-subtle dark:hover:bg-gray-800 text-sm font-medium px-3 py-1.5 transition"
+            >
+                {{ __('surveys.builder.responses') }}
+            </a>
+
             <button
                 type="button"
                 @click="openAssignments()"

@@ -31,9 +31,13 @@ class SurveyResponseController extends Controller
 
         $version = $this->resolveVersion($request, $survey);
 
+        // answers is loaded here (not just on show()) — the table's own
+        // answer-value columns read straight off each row's own answers,
+        // so leaving it out means every answer cell silently renders
+        // blank instead of a real value.
         $query = SurveyResponse::query()
             ->where('survey_version_id', $version->id)
-            ->with(['collector']);
+            ->with(['collector', 'answers']);
 
         $this->applyFilters($request, $query, $version);
         $this->applySort($request, $query);
