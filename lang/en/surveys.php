@@ -212,4 +212,28 @@ return [
         'allow_other' => 'Allow "Other" option',
     ],
 
+    // Door-to-door field collection portal (spec §7)
+    'field' => [
+        'my_surveys' => 'My Surveys',
+        'no_assigned_surveys_title' => 'No surveys assigned yet',
+        'no_assigned_surveys_body' => 'Once an admin assigns you to a survey, it will show up here.',
+        'today_count' => 'Collected today',
+        'week_count' => 'This week',
+        'total_count' => 'All time',
+        'start_collecting' => 'Start collecting',
+        'offline_banner' => 'You are offline. Submissions will be saved and sent automatically once you are back online.',
+        'queued_count' => ':count queued for sync|:count queued for sync',
+        'syncing' => 'Syncing…',
+        'sync_now' => 'Sync now',
+        'submitted_title' => 'Response recorded',
+        'submitted_body' => 'Thank the respondent — this response has been saved.',
+        'queued_offline_title' => 'Saved offline',
+        'queued_offline_body' => 'No connection right now — this response is saved on this device and will be sent automatically once you are back online.',
+        'submit_another' => 'Submit another response',
+        'back_to_my_surveys' => 'Back to My Surveys',
+        'load_failed' => 'Could not load this survey. Check your connection and try again.',
+        'generic_error' => 'Something went wrong. Please try again.',
+        'queue_failed' => 'Could not save this response on your device. Please try again, or note down the responses and re-enter them once you have a connection.',
+    ],
+
 ];

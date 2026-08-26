@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ConfirmPasswordForTwoFactorController;
 use App\Http\Controllers\LocaleController;
+use App\Http\Controllers\MyFieldSurveyPageController;
 use App\Http\Controllers\PublicSurveyPageController;
 use App\Http\Controllers\SurveyPageController;
 use App\Http\Controllers\ThemeController;
@@ -30,6 +31,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/surveys', [SurveyPageController::class, 'index'])->name('surveys.index');
     Route::get('/surveys/{survey}', [SurveyPageController::class, 'show'])->name('surveys.show');
+
+    // Door-to-door field collection portal (spec §7).
+    Route::get('/my/surveys', [MyFieldSurveyPageController::class, 'index'])->name('my.surveys.index');
+    Route::get('/my/surveys/{survey}', [MyFieldSurveyPageController::class, 'show'])->name('my.surveys.show');
 
     // The screen RequireTwoFactorForPrivilegedRoles sends Org Admin/Super
     // Admin users to until they've enabled and confirmed 2FA (spec §5.1).
