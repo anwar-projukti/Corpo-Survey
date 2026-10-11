@@ -1,6 +1,7 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
 import themeStore from './stores/theme';
+import localeSwitcher from './locale-switcher';
 import registerSortable from './surveys/sortable';
 import surveyBuilder from './surveys/builder';
 import surveysApi from './surveys/api';
@@ -12,11 +13,20 @@ import responseTable from './responses/response-table';
 import responseDetail from './responses/response-detail';
 import analyticsDashboard from './analytics/dashboard';
 import reportBuilder from './analytics/report-builder';
+import exportHistory from './exports/export-history';
+import userStats from './exports/user-stats';
+import importWizard from './imports/import-wizard';
+import importHistory from './imports/import-history';
+import userManagement from './users/user-management';
+import organizationManagement from './organizations/organization-management';
+import landingContentEditor from './landing-content/landing-content-editor';
+import pricingPlanManagement from './pricing-plans/pricing-plan-management';
 
 window.Alpine = Alpine;
 window.surveysApi = surveysApi;
 
 Alpine.store('theme', themeStore());
+Alpine.data('localeSwitcher', localeSwitcher);
 Alpine.data('surveyBuilder', surveyBuilder);
 Alpine.data('publicSurveyForm', publicSurveyForm);
 Alpine.data('twoFactorSetup', twoFactorSetup);
@@ -26,6 +36,14 @@ Alpine.data('responseTable', responseTable);
 Alpine.data('responseDetail', responseDetail);
 Alpine.data('analyticsDashboard', analyticsDashboard);
 Alpine.data('reportBuilder', reportBuilder);
+Alpine.data('exportHistory', exportHistory);
+Alpine.data('userStats', userStats);
+Alpine.data('importWizard', importWizard);
+Alpine.data('importHistory', importHistory);
+Alpine.data('userManagement', userManagement);
+Alpine.data('organizationManagement', organizationManagement);
+Alpine.data('landingContentEditor', landingContentEditor);
+Alpine.data('pricingPlanManagement', pricingPlanManagement);
 registerSortable(Alpine);
 
 Alpine.start();

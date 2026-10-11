@@ -11,7 +11,7 @@
     <div class="relative w-full max-w-md rounded-card border border-border-subtle dark:border-gray-700 bg-surface dark:bg-gray-900 shadow-xl">
         <div class="flex items-center justify-between px-5 py-4 border-b border-border-subtle dark:border-gray-800">
             <h2 class="font-semibold text-gray-900 dark:text-gray-100">{{ __('surveys.builder.field_users_title') }}</h2>
-            <button type="button" @click="showAssignments = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+            <button type="button" @click="showAssignments = false" aria-label="{{ __('messages.actions.close') }}" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>

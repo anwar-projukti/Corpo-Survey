@@ -88,7 +88,7 @@ class SubmitSurveyResponse
             ARRAY_FILTER_USE_BOTH,
         );
 
-        return DB::transaction(function () use ($version, $answers, $fingerprint, $context, $anonymize, $engine, $collector, $clientSubmissionId) {
+        $response = DB::transaction(function () use ($version, $answers, $fingerprint, $context, $anonymize, $engine, $collector, $clientSubmissionId) {
             $response = new SurveyResponse([
                 'survey_id' => $version->survey_id,
                 'survey_version_id' => $version->id,
@@ -148,6 +148,8 @@ class SubmitSurveyResponse
 
             return $response->fresh('answers');
         });
+
+        return $response;
     }
 
     /**

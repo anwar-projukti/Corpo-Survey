@@ -13,9 +13,10 @@
 
     <div class="min-h-screen flex items-center justify-center px-4">
         <div class="w-full max-w-sm bg-surface dark:bg-gray-900 border border-border-subtle dark:border-gray-800 rounded-card p-8">
-            <div class="mb-6 text-center">
+            <a href="{{ url('/') }}" class="mb-6 flex flex-col items-center gap-2 text-center">
+                <x-app-logo class="h-10 w-10" />
                 <span class="font-semibold text-lg text-gray-900 dark:text-gray-100">{{ config('app.name') }}</span>
-            </div>
+            </a>
 
             {{ $slot }}
         </div>

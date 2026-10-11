@@ -1,5 +1,6 @@
 import responsesApi from './api';
 import surveysApi from '../surveys/api';
+import exportsApi from '../exports/api';
 
 const OPERATORS = ['equals', 'not_equals', 'gt', 'gte', 'lt', 'lte', 'contains', 'is_answered', 'is_not_answered'];
 const OPERATORS_NO_VALUE = ['is_answered', 'is_not_answered'];
@@ -28,6 +29,14 @@ export default function responseTable(surveyId) {
 
         selected: new Set(),
         bulkWorking: false,
+
+        // --- Export (spec §10.1) ------------------------------------------
+        exportOpen: false,
+        exportScope: 'all',
+        exportFormat: 'xlsx',
+        exportSubmitting: false,
+        exportSubmitError: null,
+        exportQueued: false,
 
         async init() {
             await this.loadSurvey();
@@ -172,6 +181,42 @@ export default function responseTable(surveyId) {
                 await this.loadResponses();
             } finally {
                 this.bulkWorking = false;
+            }
+        },
+
+        // --- Export (spec §10.1) ------------------------------------------
+        // Lives on this same component (rather than a separate nested
+        // x-data) so it can read the table's own current filters/selection
+        // directly — "export filtered" always exports exactly what's on
+        // screen, with no separate state to keep in sync.
+
+        toggleExportPanel() {
+            this.exportOpen = !this.exportOpen;
+            this.exportSubmitError = null;
+            this.exportQueued = false;
+        },
+
+        async submitExport() {
+            this.exportSubmitting = true;
+            this.exportSubmitError = null;
+
+            const payload = { format: this.exportFormat, scope: this.exportScope };
+
+            if (this.exportScope === 'filtered') {
+                payload.filters = this.appliedFilters();
+            }
+
+            if (this.exportScope === 'selected') {
+                payload.response_ids = [...this.selected];
+            }
+
+            try {
+                await exportsApi.exportSurvey(this.surveyId, payload);
+                this.exportQueued = true;
+            } catch (error) {
+                this.exportSubmitError = error?.response?.data?.message || window.__i18n.export_start_failed;
+            } finally {
+                this.exportSubmitting = false;
             }
         },
     };

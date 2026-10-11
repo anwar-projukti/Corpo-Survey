@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\Request;
+
+/**
+ * Renders the Blade/Alpine shell for an Org Admin's own teammates (spec
+ * §13 "Users & Permissions"). All data loads client-side against
+ * /api/v1/teammates/...
+ */
+class UserManagementPageController extends Controller
+{
+    public function index(Request $request): View
+    {
+        $this->authorize('viewAny', User::class);
+
+        // Super Admin is org-less by design (User::isSuperAdmin()) and
+        // bypasses every policy check via Gate::before, so the authorize()
+        // call above always passes for them even though this page is
+        // fundamentally "this organization's own teammates" — there's no
+        // tenant here for them to manage (they manage every organization
+        // instead, via /organizations). Aborting with a clear message
+        // beats silently rendering an empty list, matching
+        // ExportHistoryPageController/UserStatsPageController/
+        // RespondentImportPageController.
+        abort_if($request->user()->organization === null, 404, 'This page is only available within an organization.');
+
+        return view('users.index');
+    }
+}

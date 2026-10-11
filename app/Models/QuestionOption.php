@@ -22,8 +22,8 @@ class QuestionOption extends Model
 
     protected static function booted(): void
     {
-        static::creating(function (self $option) {
-            if (empty($option->value)) {
+        static::saving(function (self $option) {
+            if (empty($option->value) || $option->isDirty('label')) {
                 $option->value = $option->label;
             }
         });

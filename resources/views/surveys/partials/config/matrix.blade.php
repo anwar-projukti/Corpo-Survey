@@ -29,7 +29,7 @@
                         :disabled="!isDraftEditable"
                         class="flex-1 rounded-control border border-border-subtle dark:border-gray-700 bg-surface dark:bg-gray-950 px-2 py-1 text-sm disabled:opacity-70"
                     >
-                    <button x-show="isDraftEditable" type="button" @click="removeRow(index)" class="text-gray-300 dark:text-gray-600 hover:text-red-500">
+                    <button x-show="isDraftEditable" type="button" @click="removeRow(index)" aria-label="{{ __('messages.actions.remove') }}" class="text-gray-300 dark:text-gray-600 hover:text-red-500">
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
@@ -52,7 +52,7 @@
                         :disabled="!isDraftEditable"
                         class="flex-1 rounded-control border border-border-subtle dark:border-gray-700 bg-surface dark:bg-gray-950 px-2 py-1 text-sm disabled:opacity-70"
                     >
-                    <button x-show="isDraftEditable" type="button" @click="removeColumn(index)" class="text-gray-300 dark:text-gray-600 hover:text-red-500">
+                    <button x-show="isDraftEditable" type="button" @click="removeColumn(index)" aria-label="{{ __('messages.actions.remove') }}" class="text-gray-300 dark:text-gray-600 hover:text-red-500">
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
                     </button>
                 </div>

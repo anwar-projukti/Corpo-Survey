@@ -22,7 +22,7 @@
 >
     <div class="flex items-center justify-between">
         <span class="text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">{{ __('surveys.builder.rule_if') }}</span>
-        <button x-show="isDraftEditable" type="button" @click="deleteRule(rule)" class="text-gray-300 dark:text-gray-600 hover:text-red-500">
+        <button x-show="isDraftEditable" type="button" @click="deleteRule(rule)" aria-label="{{ __('messages.actions.delete') }}" class="text-gray-300 dark:text-gray-600 hover:text-red-500">
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
         </button>
     </div>

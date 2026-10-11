@@ -1,7 +1,17 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Account\AccountDataController;
+use App\Http\Controllers\Api\V1\Admin\LandingContentController;
+use App\Http\Controllers\Api\V1\Admin\OrganizationController;
+use App\Http\Controllers\Api\V1\Admin\PricingPlanController;
 use App\Http\Controllers\Api\V1\Analytics\SavedReportController;
 use App\Http\Controllers\Api\V1\Analytics\SurveyAnalyticsController;
+use App\Http\Controllers\Api\V1\Exports\ExportJobController;
+use App\Http\Controllers\Api\V1\Exports\OrganizationExportController;
+use App\Http\Controllers\Api\V1\Exports\OrganizationUserStatsController;
+use App\Http\Controllers\Api\V1\Exports\SurveyExportController;
+use App\Http\Controllers\Api\V1\Exports\UserStatsController;
+use App\Http\Controllers\Api\V1\Imports\RespondentImportController;
 use App\Http\Controllers\Api\V1\My\MyResponseController;
 use App\Http\Controllers\Api\V1\My\MyStatsController;
 use App\Http\Controllers\Api\V1\My\MySurveyController;
@@ -19,6 +29,7 @@ use App\Http\Controllers\Api\V1\Surveys\SurveyQuestionController;
 use App\Http\Controllers\Api\V1\Surveys\SurveyRuleController;
 use App\Http\Controllers\Api\V1\Surveys\SurveySectionController;
 use App\Http\Controllers\Api\V1\Surveys\SurveyVersionController;
+use App\Http\Controllers\Api\V1\Users\TeammateController;
 use App\Http\Middleware\RequirePublicSurveyAccess;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
@@ -55,7 +66,7 @@ Route::middleware(['throttle:public-survey', EncryptCookies::class, StartSession
         Route::post('/responses', [PublicSurveyResponseController::class, 'store'])->name('public.surveys.responses.store');
     });
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
@@ -67,7 +78,12 @@ Route::middleware('auth:sanctum')->group(function () {
     // themselves get, and whichever route file loads last silently wins
     // route('surveys.index') everywhere it's called.
     Route::apiResource('surveys', SurveyController::class)->only(['index', 'store', 'show', 'update', 'destroy'])->names('api.surveys');
+    // {survey} above resolves only non-trashed rows by default (see the
+    // "Deleted organizations" comment on api.organizations.restore) — this
+    // one exists specifically to act on an already soft-deleted survey.
+    Route::post('surveys/{survey}/restore', [SurveyController::class, 'restore'])->name('api.surveys.restore');
     Route::post('surveys/{survey}/publish', [SurveyController::class, 'publish'])->name('surveys.publish');
+    Route::post('surveys/{survey}/close', [SurveyController::class, 'close'])->name('surveys.close');
     Route::post('surveys/{survey}/draft', [SurveyController::class, 'createDraft'])->name('surveys.create-draft');
     Route::get('surveys/{survey}/public-link', [SurveyController::class, 'publicLink'])->name('surveys.public-link');
 
@@ -126,6 +142,74 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('saved-reports/{savedReport}', [SavedReportController::class, 'destroy'])->name('saved-reports.destroy');
     Route::get('saved-reports/{savedReport}/run', [SavedReportController::class, 'run'])->name('saved-reports.run');
 
+    // Excel import/export & user productivity reporting (spec §10). Export
+    // creation is always queued (spec §10.4) — the response is the created
+    // App\Models\ExportJob to poll, not the file itself; the actual
+    // download only ever happens via the signed link in routes/web.php
+    // (api.exports.download), never through this authenticated group,
+    // since a signed link must also work from an email client with no
+    // Sanctum session.
+    Route::get('exports', [ExportJobController::class, 'index'])->name('exports.index');
+
+    Route::middleware('throttle:exports')->group(function () {
+        Route::post('surveys/{survey}/export', [SurveyExportController::class, 'store'])->name('surveys.export');
+        Route::post('organizations/{organization}/export', [OrganizationExportController::class, 'store'])->name('organizations.export');
+
+        // Excel import (spec §10.4): upload -> preview -> column mapping ->
+        // validation -> duplicate detection -> import summary, one endpoint
+        // per step so the admin UI can render a preview/mapping screen
+        // between upload and the actual (queued) import run.
+        Route::post('imports', [RespondentImportController::class, 'store'])->name('imports.store');
+        Route::post('imports/{importJob}/confirm', [RespondentImportController::class, 'confirm'])->name('imports.confirm');
+    });
+
+    Route::get('users/{user}/stats', [UserStatsController::class, 'index'])->name('users.stats');
+    Route::get('organizations/{organization}/user-stats', [OrganizationUserStatsController::class, 'index'])->name('organizations.user-stats');
+
+    Route::get('imports', [RespondentImportController::class, 'index'])->name('imports.index');
+    Route::get('imports/{importJob}', [RespondentImportController::class, 'show'])->name('imports.show');
+
+    // Org Admin managing their own organization's teammates (spec §13
+    // "Users & Permissions") — named "teammates" rather than "users" to
+    // avoid colliding with the users/{user}/stats route registered above,
+    // and because this list is always scoped to the acting admin's own
+    // organization, never "every user in the system" the way that name
+    // might imply.
+    Route::apiResource('teammates', TeammateController::class)->only(['index', 'store', 'update', 'destroy'])->names('teammates');
+
+    // Super Admin managing every organization in the system (spec §13
+    // "System Admin" surface) — distinct from teammates above, which is
+    // always scoped to the acting admin's own organization. Every action
+    // is gated by OrganizationPolicy, which only Super Admin ever passes.
+    // Named with an api. prefix — see the apiResource('surveys', ...) note
+    // above; routes/web.php has its own organizations.index for the Blade
+    // page itself, which would otherwise collide with this index route.
+    Route::apiResource('organizations', OrganizationController::class)->only(['index', 'store', 'update', 'destroy'])->names('api.organizations');
+
+    // Restoring/permanently erasing a soft-deleted organization (the
+    // "Deleted organizations" list, ?trashed=1 on the index above). Plain
+    // int route params rather than {organization} route-model binding —
+    // binding resolves only non-trashed rows by default, and both actions
+    // exist specifically to act on an already-trashed one.
+    Route::post('organizations/{organization}/restore', [OrganizationController::class, 'restore'])->name('api.organizations.restore');
+    Route::delete('organizations/{organization}/force', [OrganizationController::class, 'forceDestroy'])->name('api.organizations.force-destroy');
+
+    // Super Admin editing the public landing page's content (hero,
+    // features, pricing, about, contact) — a single row, so show/update
+    // rather than a full resource. Gated by LandingContentPolicy, which
+    // only Super Admin ever passes.
+    Route::get('landing-content', [LandingContentController::class, 'show'])->name('api.landing-content.show');
+    Route::put('landing-content', [LandingContentController::class, 'update'])->name('api.landing-content.update');
+    Route::post('landing-content/logo', [LandingContentController::class, 'uploadLogo'])->name('api.landing-content.logo.store');
+    Route::delete('landing-content/logo', [LandingContentController::class, 'destroyLogo'])->name('api.landing-content.logo.destroy');
+
+    // Super Admin managing the public landing page's pricing tiers — a
+    // genuine list (add/remove/reorder), unlike landing-content's single
+    // row above. Named with an api. prefix — routes/web.php has its own
+    // pricing-plans.index for the Blade page itself.
+    Route::apiResource('pricing-plans', PricingPlanController::class)->only(['index', 'store', 'update', 'destroy'])->names('api.pricing-plans');
+    Route::post('pricing-plans/reorder', [PricingPlanController::class, 'reorder'])->name('api.pricing-plans.reorder');
+
     // Door-to-door field collection (spec §7) — a Field User's own scoped
     // view: only surveys assigned to them, submission tagged with their
     // own identity server-side, and their own running totals. Deliberately
@@ -139,6 +223,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('surveys', [MySurveyController::class, 'index'])->name('surveys.index');
         Route::get('surveys/{survey}', [MySurveyController::class, 'show'])->name('surveys.show');
         Route::post('surveys/{survey}/responses', [MyResponseController::class, 'store'])->name('surveys.responses.store');
+        Route::get('responses', [MyResponseController::class, 'index'])->name('responses.index');
+        Route::get('responses/{response}', [MyResponseController::class, 'show'])->name('responses.show');
         Route::get('stats', [MyStatsController::class, 'index'])->name('stats');
     });
+
+    // Self-service GDPR-style data export / right-to-be-forgotten (spec
+    // §5.12) — always the authenticated user's own account, never another
+    // user's, so no route parameter or policy is needed.
+    Route::get('me/data-export', [AccountDataController::class, 'export'])->name('me.data-export');
+    Route::post('me/anonymize', [AccountDataController::class, 'anonymize'])->name('me.anonymize');
 });

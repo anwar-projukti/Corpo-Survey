@@ -15,8 +15,8 @@ class PublicSurveyController extends Controller
     {
         $version = $survey->currentPublishedVersion;
 
-        if (! $version) {
-            return response()->json(['message' => __('surveys.public.closed_body')], 404);
+        if (! $version || $survey->isClosed()) {
+            return $this->errorResponse(__('surveys.public.closed_body'), 404);
         }
 
         $survey->setRelation('currentPublishedVersion', $version->load(['sections.questions.options', 'rules']));
@@ -24,7 +24,7 @@ class PublicSurveyController extends Controller
         $fingerprint = $access->fingerprint($request);
 
         if ($access->hasReachedDuplicateLimit($version, $fingerprint)) {
-            return response()->json(['message' => __('surveys.public.duplicate_body')], 409);
+            return $this->errorResponse(__('surveys.public.duplicate_body'), 409);
         }
 
         $response = (new PublicSurveyResource($survey))->response();

@@ -23,6 +23,8 @@ class SurveyResource extends JsonResource
             'description' => $this->description,
             'created_by' => $this->created_by,
             'is_published' => $this->isPublished(),
+            'is_closed' => $this->isClosed(),
+            'closed_at' => $this->closed_at?->toIso8601String(),
             'current_draft_version' => $this->whenLoaded(
                 'currentDraftVersion',
                 fn () => $this->currentDraftVersion ? new SurveyVersionResource($this->currentDraftVersion) : null,

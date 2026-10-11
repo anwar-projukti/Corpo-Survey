@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api\V1\My;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\My\MyStatsResource;
 use App\Models\SurveyResponse;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
@@ -15,13 +15,13 @@ use Illuminate\Http\Request;
  */
 class MyStatsController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(Request $request): MyStatsResource
     {
         $collectorId = $request->user()->id;
 
         $base = SurveyResponse::query()->where('collected_by_user_id', $collectorId);
 
-        return response()->json([
+        return new MyStatsResource([
             'today' => (clone $base)->whereDate('submitted_at', now()->toDateString())->count(),
             'this_week' => (clone $base)->where('submitted_at', '>=', now()->startOfWeek())->count(),
             'total' => (clone $base)->count(),

@@ -25,6 +25,7 @@ class SurveyResponseResource extends JsonResource
         return [
             'id' => $this->id,
             'survey_id' => $this->survey_id,
+            'survey_title' => $this->whenLoaded('survey', fn () => $this->survey->title),
             'survey_version_id' => $this->survey_version_id,
             'status' => $this->status->value,
             'review_status' => $this->review_status->value,

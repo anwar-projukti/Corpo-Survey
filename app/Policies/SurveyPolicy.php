@@ -7,14 +7,19 @@ use App\Models\User;
 
 /**
  * Super Admin bypasses every check here via Gate::before (AuthServiceProvider)
- * and never reaches this class. Every method that receives a Survey
- * instance re-checks organization_id explicitly (via sameOrganization())
- * rather than relying solely on Survey's BelongsToOrganization global
- * scope — the scope stops a query from *returning* another tenant's
- * survey, but a policy is the last line of defense if a survey instance
- * ever reaches here some other way (e.g. a route-model-bound ID looked up
- * with scopes bypassed). viewAny() has no instance to check against, and
- * forceDelete() is unconditionally false — neither calls sameOrganization().
+ * and never reaches this class — except create(), which Gate::before
+ * deliberately excludes from that bypass: Super Admin has no
+ * organization_id to stamp onto a new survey (App\Actions\Surveys\CreateSurvey),
+ * so create() actually runs for them and correctly denies (no
+ * survey.create permission — see RolesAndPermissionsSeeder). Every method
+ * that receives a Survey instance re-checks organization_id explicitly
+ * (via sameOrganization()) rather than relying solely on Survey's
+ * BelongsToOrganization global scope — the scope stops a query from
+ * *returning* another tenant's survey, but a policy is the last line of
+ * defense if a survey instance ever reaches here some other way (e.g. a
+ * route-model-bound ID looked up with scopes bypassed). viewAny() has no
+ * instance to check against, and forceDelete() is unconditionally false —
+ * neither calls sameOrganization().
  */
 class SurveyPolicy
 {
@@ -44,6 +49,17 @@ class SurveyPolicy
     }
 
     public function publish(User $user, Survey $survey): bool
+    {
+        return $this->sameOrganization($user, $survey) && $user->can('survey.publish');
+    }
+
+    /**
+     * Closing a survey (spec §11.3's survey.closed event) reuses
+     * survey.publish rather than a new permission — stopping new
+     * submissions is the same lifecycle-management capability as
+     * publishing, just the other direction.
+     */
+    public function close(User $user, Survey $survey): bool
     {
         return $this->sameOrganization($user, $survey) && $user->can('survey.publish');
     }

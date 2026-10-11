@@ -1,7 +1,7 @@
 <x-app-layout :title="$survey->title">
     @include('surveys.partials.i18n')
 
-    <div x-data="surveyBuilder({{ $survey->id }})" x-init="init()" class="flex flex-col h-[calc(100vh-4rem)]">
+    <div x-data="surveyBuilder({{ $survey->id }}, @js(auth()->user()->can('update', $survey)))" x-init="init()" class="flex flex-col h-[calc(100vh-4rem)]">
         <div x-show="loading" class="flex-1 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
             {{ __('messages.system.loading') }}
         </div>
@@ -20,6 +20,8 @@
 
                         <template x-if="version">
                             <div class="max-w-3xl mx-auto space-y-4">
+                                <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100 break-words" x-text="survey.title"></h1>
+
                                 <div
                                     x-sortable="(ids) => reorderSections(ids)"
                                     :class="isDraftEditable ? '' : 'pointer-events-none'"
@@ -56,5 +58,6 @@
         </template>
 
         @include('surveys.partials.field-assignments-modal')
+        @include('surveys.partials.confirm-modal')
     </div>
 </x-app-layout>

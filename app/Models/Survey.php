@@ -29,6 +29,13 @@ class Survey extends Model
         'description',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'closed_at' => 'datetime',
+        ];
+    }
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -72,6 +79,22 @@ class Survey extends Model
     public function isPublished(): bool
     {
         return $this->current_published_version_id !== null;
+    }
+
+    public function isClosed(): bool
+    {
+        return $this->closed_at !== null;
+    }
+
+    /**
+     * The only sanctioned way to change closed_at — see the $fillable
+     * docblock above for why system-managed lifecycle fields stay off
+     * mass-assignment. Callers are expected to be App\Actions\Surveys\CloseSurvey,
+     * not a controller writing to the model directly.
+     */
+    public function setClosedAt(?\DateTimeInterface $closedAt): void
+    {
+        $this->forceFill(['closed_at' => $closedAt])->save();
     }
 
     /**

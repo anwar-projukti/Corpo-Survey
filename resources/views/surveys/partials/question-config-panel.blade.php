@@ -29,7 +29,7 @@
         <div class="space-y-4">
             <div class="flex items-center justify-between">
                 <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ __('messages.actions.edit') }}</h3>
-                <button type="button" @click="activeQuestionId = null" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <button type="button" @click="activeQuestionId = null" aria-label="{{ __('messages.actions.close') }}" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                     </svg>

@@ -42,3 +42,40 @@ test('the analytics page 404s for a survey in a different organization', functio
 
     $response->assertNotFound();
 });
+
+test('an Org Admin sees the saved report New/Edit/Delete controls', function () {
+    [$organization, $admin] = orgAdminForAnalyticsPage();
+    $survey = Survey::factory()->create(['organization_id' => $organization->id]);
+
+    $response = $this->actingAs($admin)->get("/surveys/{$survey->id}/analytics");
+
+    $response->assertOk()
+        ->assertSee(__('surveys.analytics.reports_new'))
+        ->assertSee(__('surveys.analytics.reports_edit'))
+        ->assertSee(__('surveys.analytics.reports_delete'));
+});
+
+test('a Viewer also holds report.export, so still sees the saved report write controls', function () {
+    $organization = Organization::factory()->create();
+    $viewer = User::factory()->create(['organization_id' => $organization->id]);
+    $viewer->assignRole('Viewer');
+    $survey = Survey::factory()->create(['organization_id' => $organization->id]);
+
+    $response = $this->actingAs($viewer)->get("/surveys/{$survey->id}/analytics");
+
+    $response->assertOk()
+        ->assertSee(__('surveys.analytics.reports_new'))
+        ->assertSee(__('surveys.analytics.reports_edit'))
+        ->assertSee(__('surveys.analytics.reports_delete'));
+});
+
+test('an Editor has report.view but not report.export, so cannot see the saved report write controls', function () {
+    $organization = Organization::factory()->create();
+    $editor = User::factory()->create(['organization_id' => $organization->id]);
+    $editor->assignRole('Editor');
+    $survey = Survey::factory()->create(['organization_id' => $organization->id]);
+
+    $response = $this->actingAs($editor)->get("/surveys/{$survey->id}/analytics");
+
+    $response->assertOk()->assertDontSee(__('surveys.analytics.reports_new'));
+});

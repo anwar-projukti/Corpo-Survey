@@ -22,9 +22,10 @@
     <button
         x-show="isDraftEditable"
         type="button"
-        @click.stop="deleteQuestion(section, question)"
+        @click.stop="confirmDeleteQuestion(section, question)"
         class="text-gray-300 dark:text-gray-600 hover:text-red-500 shrink-0"
         :title="@js(__('surveys.builder.delete_question'))"
+        aria-label="{{ __('surveys.builder.delete_question') }}"
     >
         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />

@@ -10,5 +10,7 @@ const BASE = '/api/v1/my';
 export default {
     listSurveys: () => axios.get(`${BASE}/surveys`).then((r) => r.data.data),
     showSurvey: (surveyId) => axios.get(`${BASE}/surveys/${surveyId}`).then((r) => r.data.data),
-    stats: () => axios.get(`${BASE}/stats`).then((r) => r.data),
+    stats: () => axios.get(`${BASE}/stats`).then((r) => r.data.data),
+    listResponses: (page = 1) => axios.get(`${BASE}/responses`, { params: { page } }).then((r) => r.data),
+    showResponse: (responseId) => axios.get(`${BASE}/responses/${responseId}`).then((r) => r.data.data),
 };

@@ -4,12 +4,15 @@
 
 <title>{{ $title ?? config('app.name') }}</title>
 
+<link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+<link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
+
 {{-- Noto Sans/Serif Bengali for correct Bangla rendering (spec §4); Inter
      for Latin text. Only Google Fonts is reachable from a strict CSP. --}}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Serif+Bengali:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Bengali:wght@400;500;600;700;800&family=Noto+Serif+Bengali:wght@400;600&display=swap" rel="stylesheet">
 
 @include('partials.theme-init')
 
-@vite(['resources/css/app.css', 'resources/js/app.js'])
+@vite(['resources/css/app.css', $entry ?? 'resources/js/app.js'])

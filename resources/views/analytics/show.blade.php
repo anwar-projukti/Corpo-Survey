@@ -136,13 +136,15 @@
     <div x-data="reportBuilder({{ $survey->id }})" x-init="init()" class="max-w-6xl mx-auto pb-12 px-4 sm:px-6">
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ __('surveys.analytics.reports_title') }}</h2>
-            <button
-                type="button"
-                @click="openNewForm()"
-                class="rounded-control bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-3 py-1.5 transition"
-            >
-                {{ __('surveys.analytics.reports_new') }}
-            </button>
+            @can('create', [\App\Models\SavedReport::class, $survey])
+                <button
+                    type="button"
+                    @click="openNewForm()"
+                    class="rounded-control bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-3 py-1.5 transition"
+                >
+                    {{ __('surveys.analytics.reports_new') }}
+                </button>
+            @endcan
         </div>
 
         <div x-show="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ __('messages.system.loading') }}</div>
@@ -220,7 +222,7 @@
                                 class="rounded-control border border-border-subtle dark:border-gray-700 bg-surface dark:bg-gray-900 text-sm px-2 py-1.5"
                             >
 
-                            <button type="button" @click="removeFilter(index)" class="text-gray-400 hover:text-red-600 dark:hover:text-red-400">
+                            <button type="button" @click="removeFilter(index)" aria-label="{{ __('messages.actions.remove') }}" class="text-gray-400 hover:text-red-600 dark:hover:text-red-400">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                                 </svg>
@@ -265,12 +267,18 @@
                             <button type="button" @click="runReport(report)" class="text-brand-600 dark:text-brand-400 hover:underline">
                                 {{ __('surveys.analytics.reports_run') }}
                             </button>
-                            <button type="button" @click="openEditForm(report)" class="text-gray-600 dark:text-gray-300 hover:underline">
-                                {{ __('surveys.analytics.reports_edit') }}
-                            </button>
-                            <button type="button" @click="deleteReport(report)" class="text-red-600 dark:text-red-400 hover:underline">
-                                {{ __('surveys.analytics.reports_delete') }}
-                            </button>
+                            @can('create', [\App\Models\SavedReport::class, $survey])
+                                {{-- SavedReportPolicy gates update/delete on report.export alone (plus
+                                     an org match every report here already satisfies), the same
+                                     permission as create — one page-level check instead of a
+                                     per-report @can, since there's no per-report policy variance. --}}
+                                <button type="button" @click="openEditForm(report)" class="text-gray-600 dark:text-gray-300 hover:underline">
+                                    {{ __('surveys.analytics.reports_edit') }}
+                                </button>
+                                <button type="button" @click="deleteReport(report)" class="text-red-600 dark:text-red-400 hover:underline">
+                                    {{ __('surveys.analytics.reports_delete') }}
+                                </button>
+                            @endcan
                         </div>
                     </div>
 

@@ -1,0 +1,60 @@
+<?php
+
+return [
+    'title' => 'ল্যান্ডিং পেজ',
+    'body' => 'সাইন ইন করার আগে ভিজিটরদের দেখানো পাবলিক ল্যান্ডিং পেজ (ফিচার, মূল্য, পরিচিতি, যোগাযোগ) সম্পাদনা করুন। ডিফল্ট টেক্সট রাখতে কোনো ফিল্ড খালি রাখুন।',
+    'load_failed' => 'ল্যান্ডিং পেজের কনটেন্ট লোড করা যায়নি। পেজটি রিফ্রেশ করে চেষ্টা করুন।',
+    'save' => 'পরিবর্তন সংরক্ষণ করুন',
+    'saving' => 'সংরক্ষণ হচ্ছে…',
+    'save_failed' => 'আপনার পরিবর্তনগুলো সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।',
+    'saved' => 'সংরক্ষিত হয়েছে।',
+    'view_live' => 'লাইভ পেজ দেখুন',
+
+    'column_english' => 'English',
+    'column_bangla' => 'বাংলা',
+
+    'section_branding' => 'ব্র্যান্ডিং',
+    'section_branding_body' => 'সাইডবার, মোবাইল হেডার, সাইন-ইন স্ক্রিন এবং পাবলিক ল্যান্ডিং পেজে প্রদর্শিত লোগো।',
+    'logo_upload' => 'লোগো আপলোড করুন',
+    'logo_reset' => 'ডিফল্টে ফিরিয়ে নিন',
+    'logo_help' => 'PNG, JPG, বা WEBP, কমপক্ষে ৬৪×৬৪px, সর্বোচ্চ ২MB। বর্গাকার ছবি সবচেয়ে ভালো কাজ করে।',
+    'logo_upload_failed' => 'লোগো আপলোড করা যায়নি। আবার চেষ্টা করুন।',
+
+    'section_hero' => 'হিরো',
+    'section_hero_body' => 'পেজের শীর্ষে ভিজিটররা প্রথমে যা দেখেন।',
+    'field_hero_eyebrow' => 'ব্যাজ টেক্সট',
+    'field_hero_tagline' => 'হেডলাইন',
+    'field_hero_body' => 'সাব-হেডিং',
+    'field_hero_footnote' => 'ফুটনোট',
+
+    'section_features' => 'ফিচার',
+    'section_features_body' => 'তিনটি ফিচার কার্ড এবং তাদের সেকশন হেডিং।',
+    'field_features_title' => 'সেকশন হেডিং',
+    'field_feature_title' => 'কার্ড শিরোনাম',
+    'field_feature_body' => 'কার্ড বিবরণ',
+    'feature_1' => 'ফিচার ১ — সার্ভে বিল্ডার',
+    'feature_2' => 'ফিচার ২ — মাঠপর্যায়ের সংগ্রহ',
+    'feature_3' => 'ফিচার ৩ — অ্যানালিটিক্স',
+
+    'section_pricing' => 'মূল্য',
+    'section_pricing_body' => 'মূল্য সংক্রান্ত কল-টু-অ্যাকশন ব্লক।',
+    'field_pricing_title' => 'হেডিং',
+    'field_pricing_body' => 'বিবরণ',
+    'manage_pricing_plans' => 'প্ল্যান পরিচালনা করুন',
+
+    'section_about' => 'পরিচিতি',
+    'section_about_body' => 'পরিচিতি কার্ড এবং এর তিনটি পরিসংখ্যান।',
+    'field_about_title' => 'হেডিং',
+    'field_about_body' => 'বিবরণ',
+    'field_about_stat_response_types' => 'পরিসংখ্যান: সংগ্রহের ধরন',
+    'field_about_stat_languages' => 'পরিসংখ্যান: ভাষা',
+    'field_about_stat_offline' => 'পরিসংখ্যান: মাঠপর্যায়ে সংগ্রহ',
+
+    'section_contact' => 'যোগাযোগ',
+    'section_contact_body' => 'ভিজিটরদের দেখানো যোগাযোগের বিবরণ, এবং ইমেইল ও ফোন নম্বর, যা অনুবাদ করা হয় না।',
+    'field_contact_title' => 'হেডিং',
+    'field_contact_body' => 'বিবরণ',
+    'field_contact_email' => 'ইমেইল ঠিকানা',
+    'field_contact_phone' => 'ফোন নম্বর',
+    'field_contact_office_address' => 'অফিস ঠিকানা',
+];

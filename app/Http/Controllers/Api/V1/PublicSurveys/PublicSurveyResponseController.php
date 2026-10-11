@@ -26,14 +26,14 @@ class PublicSurveyResponseController extends Controller
     ): JsonResponse {
         $version = $survey->currentPublishedVersion;
 
-        if (! $version) {
-            return response()->json(['message' => __('surveys.public.closed_body')], 404);
+        if (! $version || $survey->isClosed()) {
+            return $this->errorResponse(__('surveys.public.closed_body'), 404);
         }
 
         $version->load(['sections.questions.options', 'rules']);
 
         if (! $captcha->verify($request->string('captcha_token')->value() ?: null, $request->ip())) {
-            return response()->json(['message' => __('surveys.public.captcha_failed')], 422);
+            return $this->errorResponse(__('surveys.public.captcha_failed'));
         }
 
         $settings = $version->settingsData;
@@ -42,14 +42,14 @@ class PublicSurveyResponseController extends Controller
             $destination = $request->string('otp_destination')->value();
 
             if (! $destination || ! $otp->isVerified($version, $destination)) {
-                return response()->json(['message' => __('surveys.otp.invalid_code')], 422);
+                return $this->errorResponse(__('surveys.otp.invalid_code'));
             }
         }
 
         $fingerprint = $access->fingerprint($request);
 
         if ($access->hasReachedDuplicateLimit($version, $fingerprint)) {
-            return response()->json(['message' => __('surveys.public.duplicate_body')], 409);
+            return $this->errorResponse(__('surveys.public.duplicate_body'), 409);
         }
 
         try {
@@ -71,11 +71,10 @@ class PublicSurveyResponseController extends Controller
         } catch (Throwable $e) {
             Log::error('Public survey submission failed.', ['exception' => $e]);
 
-            return response()->json(['message' => __('surveys.public.validation_error')], 422);
+            return $this->errorResponse(__('surveys.public.validation_error'));
         }
 
-        $response = response()->json([
-            'message' => __('surveys.public.thank_you_body'),
+        $response = $this->successResponse(__('surveys.public.thank_you_body'), [
             'status' => $surveyResponse->status->value,
         ], 201);
 

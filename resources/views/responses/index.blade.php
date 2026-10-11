@@ -12,6 +12,7 @@
             'operator_contains' => __('surveys.responses.operator_contains'),
             'operator_is_answered' => __('surveys.responses.operator_is_answered'),
             'operator_is_not_answered' => __('surveys.responses.operator_is_not_answered'),
+            'export_start_failed' => __('surveys.exports.start_failed'),
         ];
     @endphp
     <script>
@@ -27,6 +28,62 @@
                 <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mt-1">{{ $survey->title }}</h1>
                 <p class="text-sm text-gray-500 dark:text-gray-400">{{ __('surveys.responses.title') }}</p>
             </div>
+
+            @can('export', \App\Models\SurveyResponse::class)
+                {{-- Export (spec §10.1) — reads this same component's own
+                     filters/selected state, so "export filtered"/"export
+                     selected" always matches what's on screen. --}}
+                <div class="relative">
+                    <button type="button" @click="toggleExportPanel()" class="rounded-control border border-border-subtle dark:border-gray-700 text-sm px-3 py-1.5 text-gray-600 dark:text-gray-300 hover:bg-surface-subtle dark:hover:bg-gray-800">
+                        {{ __('messages.actions.export') }}
+                    </button>
+
+                    <div
+                        x-show="exportOpen"
+                        x-cloak
+                        @click.outside="exportOpen = false"
+                        class="absolute right-0 mt-2 w-72 rounded-card border border-border-subtle dark:border-gray-800 bg-surface dark:bg-gray-900 shadow-lg p-4 z-10"
+                    >
+                        <template x-if="!exportQueued">
+                            <div>
+                                <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">{{ __('surveys.exports.scope') }}</label>
+                                <select x-model="exportScope" class="w-full mb-3 rounded-control border border-border-subtle dark:border-gray-700 bg-surface dark:bg-gray-900 text-sm px-2 py-1.5">
+                                    <option value="all">{{ __('surveys.exports.scope_all') }}</option>
+                                    <option value="filtered">{{ __('surveys.exports.scope_filtered') }}</option>
+                                    <option value="selected">{{ __('surveys.exports.scope_selected') }}</option>
+                                </select>
+
+                                <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">{{ __('surveys.exports.format') }}</label>
+                                <select x-model="exportFormat" class="w-full mb-3 rounded-control border border-border-subtle dark:border-gray-700 bg-surface dark:bg-gray-900 text-sm px-2 py-1.5">
+                                    <option value="xlsx">Excel (.xlsx)</option>
+                                    <option value="csv">CSV</option>
+                                </select>
+
+                                <p x-show="exportSubmitError" x-text="exportSubmitError" x-cloak class="mb-2 text-sm text-red-600 dark:text-red-400"></p>
+
+                                <button
+                                    type="button"
+                                    :disabled="exportSubmitting"
+                                    @click="submitExport()"
+                                    class="w-full rounded-control bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-sm font-medium px-3 py-1.5 transition"
+                                >
+                                    <span x-show="!exportSubmitting">{{ __('surveys.exports.submit') }}</span>
+                                    <span x-show="exportSubmitting" x-cloak>{{ __('surveys.exports.submitting') }}</span>
+                                </button>
+                            </div>
+                        </template>
+
+                        <template x-if="exportQueued">
+                            <div>
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">{{ __('surveys.exports.queued') }}</p>
+                                <a href="{{ route('export-history.index') }}" class="text-sm text-brand-600 dark:text-brand-400 hover:underline">
+                                    {{ __('surveys.exports.title') }} &rarr;
+                                </a>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            @endcan
         </div>
 
         {{-- Filters --}}
@@ -68,7 +125,7 @@
                             class="rounded-control border border-border-subtle dark:border-gray-700 bg-surface dark:bg-gray-900 text-sm px-2 py-1.5"
                         >
 
-                        <button type="button" @click="removeFilter(index)" class="text-gray-400 hover:text-red-600 dark:hover:text-red-400">
+                        <button type="button" @click="removeFilter(index)" aria-label="{{ __('messages.actions.remove') }}" class="text-gray-400 hover:text-red-600 dark:hover:text-red-400">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                             </svg>
@@ -103,13 +160,22 @@
             </template>
         </div>
 
-        {{-- Bulk actions --}}
+        {{-- Bulk actions. update/delete are per-instance SurveyResponsePolicy
+             abilities (they take a SurveyResponse, not just a User), so
+             there's no bare class-string @can for them the way viewAny/
+             export have — checking the underlying permission directly
+             instead, since neither ability adds anything beyond it plus an
+             org match this page's own authorization already guarantees. --}}
         <div x-show="selected.size > 0" x-cloak class="mb-3 flex items-center gap-3 rounded-card bg-brand-50 dark:bg-brand-950 px-4 py-2 text-sm">
             <span class="text-brand-700 dark:text-brand-300" x-text="@js(__('surveys.responses.bulk_selected')).replace(':count', selected.size)"></span>
-            <button type="button" :disabled="bulkWorking" @click="bulkReview('approved')" class="text-brand-700 dark:text-brand-300 hover:underline">{{ __('surveys.responses.bulk_approve') }}</button>
-            <button type="button" :disabled="bulkWorking" @click="bulkReview('rejected')" class="text-brand-700 dark:text-brand-300 hover:underline">{{ __('surveys.responses.bulk_reject') }}</button>
-            <button type="button" :disabled="bulkWorking" @click="bulkReview('archived')" class="text-brand-700 dark:text-brand-300 hover:underline">{{ __('surveys.responses.bulk_archive') }}</button>
-            <button type="button" :disabled="bulkWorking" @click="bulkDelete()" class="text-red-600 dark:text-red-400 hover:underline">{{ __('surveys.responses.bulk_delete') }}</button>
+            @if (auth()->user()->can('response.edit'))
+                <button type="button" :disabled="bulkWorking" @click="bulkReview('approved')" class="text-brand-700 dark:text-brand-300 hover:underline">{{ __('surveys.responses.bulk_approve') }}</button>
+                <button type="button" :disabled="bulkWorking" @click="bulkReview('rejected')" class="text-brand-700 dark:text-brand-300 hover:underline">{{ __('surveys.responses.bulk_reject') }}</button>
+                <button type="button" :disabled="bulkWorking" @click="bulkReview('archived')" class="text-brand-700 dark:text-brand-300 hover:underline">{{ __('surveys.responses.bulk_archive') }}</button>
+            @endif
+            @if (auth()->user()->can('response.delete'))
+                <button type="button" :disabled="bulkWorking" @click="bulkDelete()" class="text-red-600 dark:text-red-400 hover:underline">{{ __('surveys.responses.bulk_delete') }}</button>
+            @endif
         </div>
 
         <div x-show="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ __('messages.system.loading') }}</div>

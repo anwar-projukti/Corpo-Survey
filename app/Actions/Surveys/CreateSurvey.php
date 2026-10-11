@@ -6,6 +6,7 @@ use App\Enums\SurveyVersionStatus;
 use App\Models\Survey;
 use App\Models\SurveyVersion;
 use App\Models\User;
+use App\Services\AuditLogger;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -17,6 +18,8 @@ use Illuminate\Support\Str;
  */
 class CreateSurvey
 {
+    public function __construct(private readonly AuditLogger $auditLogger) {}
+
     /**
      * @param  array{title: string, description?: string|null}  $attributes
      */
@@ -24,7 +27,7 @@ class CreateSurvey
     {
         for ($attempt = 1; $attempt <= 2; $attempt++) {
             try {
-                return DB::transaction(function () use ($creator, $attributes, $attempt) {
+                $survey = DB::transaction(function () use ($creator, $attributes, $attempt) {
                     // organization_id is deliberately not mass-assignable
                     // (see Survey::$fillable) — forceFill it from the
                     // explicit $creator parameter rather than depending on
@@ -49,6 +52,12 @@ class CreateSurvey
 
                     return $survey;
                 });
+
+                $this->auditLogger->log('survey.created', subject: $survey, properties: [
+                    'title' => $survey->title,
+                ], actor: $creator);
+
+                return $survey;
             } catch (UniqueConstraintViolationException $exception) {
                 if ($attempt === 2) {
                     throw $exception;

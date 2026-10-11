@@ -19,8 +19,24 @@
             {{ __('surveys.field.back_to_my_surveys') }}
         </a>
 
-        <div x-show="!online" x-cloak class="mb-4 rounded-card bg-amber-50 dark:bg-amber-950 text-amber-800 dark:text-amber-300 text-sm px-4 py-3">
-            {{ __('surveys.field.offline_banner') }}
+        <div x-show="!online" x-cloak class="mb-4 rounded-card bg-amber-50 dark:bg-amber-950 text-amber-800 dark:text-amber-300 text-sm px-4 py-3 flex items-center justify-between gap-3">
+            <span>{{ __('surveys.field.offline_banner') }}</span>
+            <button type="button" @click="recheckConnection()" class="shrink-0 font-medium underline hover:no-underline">
+                {{ __('surveys.field.retry_connection') }}
+            </button>
+        </div>
+
+        <div
+            x-show="!loading && !loadError && !submitted"
+            class="mb-4 inline-flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500"
+        >
+            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+            </svg>
+            <span x-text="latitude !== null
+                ? `${@js(__('surveys.field.location_captured'))}: ${locationLabel || `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`}`
+                : @js(__('surveys.field.location_pending'))"></span>
         </div>
 
         <div x-show="loading" class="py-16 text-center text-sm text-gray-500 dark:text-gray-400">

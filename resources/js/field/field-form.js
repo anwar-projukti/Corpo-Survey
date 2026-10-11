@@ -2,6 +2,7 @@ import fieldApi from './api';
 import offlineQueue from './offline-queue';
 import fieldSync from './sync';
 import RuleEngine from '../surveys/rule-engine';
+import reverseGeocode from '../support/reverse-geocode';
 
 /**
  * Root Alpine component for the door-to-door field collection form
@@ -33,19 +34,60 @@ export default function fieldSurveyForm(surveyId) {
         clientSubmissionId: null,
         queueCount: 0,
         online: navigator.onLine,
+        latitude: null,
+        longitude: null,
+        locationLabel: null,
 
         async init() {
             this.clientSubmissionId = crypto.randomUUID();
             await this.load();
             await this.refreshQueueCount();
+            this.captureLocation();
 
-            window.addEventListener('online', () => {
-                this.online = true;
-                fieldSync.syncAll().then(() => this.refreshQueueCount());
-            });
+            window.addEventListener('online', () => this.recheckConnection());
             window.addEventListener('offline', () => (this.online = false));
 
             fieldSync.onChange(() => this.refreshQueueCount());
+        },
+
+        // navigator.onLine only reflects whether the OS thinks a network
+        // interface is up — it can get stuck `false` if the browser missed
+        // firing its `online` event back after a earlier blip (a known
+        // browser quirk), even though requests to our own server succeed
+        // fine. So this is a real probe, not just trusting that flag: a
+        // successful request proves we're online regardless of what
+        // navigator.onLine says, and only a genuine network-level failure
+        // (isNetworkError — no response at all) flips the banner back on.
+        async recheckConnection() {
+            try {
+                await fieldApi.showSurvey(this.surveyId);
+                this.online = true;
+                await fieldSync.syncAll();
+                await this.refreshQueueCount();
+            } catch (error) {
+                if (this.isNetworkError(error)) this.online = false;
+            }
+        },
+
+        // Best-effort only — a field visit happens wherever the respondent
+        // is, often indoors or with a weak signal, so a slow/denied/failed
+        // geolocation read must never block or delay filling out the
+        // survey. latitude/longitude simply stay null and the response
+        // submits without them, same as before this existed.
+        captureLocation() {
+            if (! navigator.geolocation) {
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    this.latitude = position.coords.latitude;
+                    this.longitude = position.coords.longitude;
+                    this.locationLabel = await reverseGeocode(this.latitude, this.longitude);
+                },
+                () => {},
+                { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 },
+            );
         },
 
         async load() {
@@ -55,8 +97,10 @@ export default function fieldSurveyForm(surveyId) {
             try {
                 this.survey = await fieldApi.showSurvey(this.surveyId);
                 this.startedAt = new Date().toISOString();
-            } catch {
+                this.online = true;
+            } catch (error) {
                 this.loadError = window.__i18n.load_failed;
+                if (this.isNetworkError(error)) this.online = false;
             } finally {
                 this.loading = false;
             }
@@ -161,6 +205,8 @@ export default function fieldSurveyForm(surveyId) {
                     answers: this.answers,
                     started_at: this.startedAt,
                     client_submission_id: this.clientSubmissionId,
+                    latitude: this.latitude,
+                    longitude: this.longitude,
                 }),
             );
         },
@@ -225,6 +271,10 @@ export default function fieldSurveyForm(surveyId) {
             this.submitError = null;
             this.startedAt = new Date().toISOString();
             this.clientSubmissionId = crypto.randomUUID();
+            this.latitude = null;
+            this.longitude = null;
+            this.locationLabel = null;
+            this.captureLocation();
         },
     };
 }

@@ -26,7 +26,7 @@ test('publishing a draft makes it the current published version', function () {
     $survey = surveyWithOneQuestion($organization, $publisher);
     $draftId = $survey->currentDraftVersion->id;
 
-    $survey = (new PublishSurveyVersion)->handle($survey, $publisher);
+    $survey = app(PublishSurveyVersion::class)->handle($survey, $publisher);
 
     expect($survey->current_published_version_id)->toBe($draftId)
         ->and($survey->current_draft_version_id)->toBeNull()
@@ -40,7 +40,7 @@ test('publishing archives the previously published version', function () {
     $publisher = User::factory()->create(['organization_id' => $organization->id]);
     $survey = surveyWithOneQuestion($organization, $publisher);
 
-    $survey = (new PublishSurveyVersion)->handle($survey, $publisher);
+    $survey = app(PublishSurveyVersion::class)->handle($survey, $publisher);
     $previouslyPublishedId = $survey->current_published_version_id;
 
     $newDraft = $survey->versions()->create([
@@ -51,7 +51,7 @@ test('publishing archives the previously published version', function () {
         ->questions()->create(['type' => QuestionType::ShortText, 'label' => 'Q', 'order' => 0]);
     $survey->setCurrentDraftVersion($newDraft);
 
-    $survey = (new PublishSurveyVersion)->handle($survey->fresh(), $publisher);
+    $survey = app(PublishSurveyVersion::class)->handle($survey->fresh(), $publisher);
 
     expect($survey->current_published_version_id)->toBe($newDraft->id)
         ->and(SurveyVersion::find($previouslyPublishedId)->status)->toBe(SurveyVersionStatus::Archived);
@@ -62,7 +62,7 @@ test('publishing a survey with no draft version fails', function () {
     $publisher = User::factory()->create(['organization_id' => $organization->id]);
     $survey = Survey::factory()->create(['organization_id' => $organization->id, 'created_by' => $publisher->id]);
 
-    (new PublishSurveyVersion)->handle($survey, $publisher);
+    app(PublishSurveyVersion::class)->handle($survey, $publisher);
 })->throws(ValidationException::class);
 
 test('publishing a survey with no questions fails', function () {
@@ -73,5 +73,5 @@ test('publishing a survey with no questions fails', function () {
     $version->sections()->create(['title' => 'Empty section', 'order' => 0]);
     $survey->setCurrentDraftVersion($version);
 
-    (new PublishSurveyVersion)->handle($survey->fresh(), $publisher);
+    app(PublishSurveyVersion::class)->handle($survey->fresh(), $publisher);
 })->throws(ValidationException::class);

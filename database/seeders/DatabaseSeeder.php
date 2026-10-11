@@ -33,6 +33,17 @@ class DatabaseSeeder extends Seeder
         ]);
         $orgAdmin->assignRole('Org Admin');
 
+        // Seeds the /login (regular-user) portal — Super Admin and Org
+        // Admin above cover /admin/login and /org/login, but neither role
+        // is allowed through /login (see App\Support\LoginPortal), so
+        // without this there was no account to sign in with there.
+        $fieldUser = User::factory()->create([
+            'organization_id' => $organization->id,
+            'name' => 'Field User',
+            'email' => 'fielduser@example.com',
+        ]);
+        $fieldUser->assignRole('Field User');
+
         $this->call(SurveySeeder::class);
     }
 }

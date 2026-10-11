@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Api\V1\Analytics;
 use App\Http\Controllers\Concerns\ResolvesSurveyVersion;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Analytics\QuestionDistributionResource;
+use App\Http\Resources\Analytics\SurveyAnalyticsResource;
 use App\Models\Survey;
 use App\Support\SurveyAnalytics;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
@@ -20,7 +20,7 @@ class SurveyAnalyticsController extends Controller
 {
     use ResolvesSurveyVersion;
 
-    public function show(Request $request, Survey $survey, SurveyAnalytics $analytics): JsonResponse
+    public function show(Request $request, Survey $survey, SurveyAnalytics $analytics): SurveyAnalyticsResource
     {
         $this->authorize('viewReports', $survey);
 
@@ -33,16 +33,14 @@ class SurveyAnalyticsController extends Controller
 
         $questions = $version->sections->flatMap->questions;
 
-        return response()->json([
-            'data' => [
-                'version_id' => $version->id,
-                'overview' => $analytics->overview($version),
-                'trend' => $analytics->trend($version, $granularity),
-                'drop_off' => $analytics->dropOff($version),
-                'questions' => $questions
-                    ->map(fn ($question) => (new QuestionDistributionResource($question, $analytics))->toArray($request))
-                    ->values(),
-            ],
+        return new SurveyAnalyticsResource([
+            'version_id' => $version->id,
+            'overview' => $analytics->overview($version),
+            'trend' => $analytics->trend($version, $granularity),
+            'drop_off' => $analytics->dropOff($version),
+            'questions' => $questions
+                ->map(fn ($question) => (new QuestionDistributionResource($question, $analytics))->toArray($request))
+                ->values(),
         ]);
     }
 }

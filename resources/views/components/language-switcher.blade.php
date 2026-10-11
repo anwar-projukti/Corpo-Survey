@@ -1,41 +1,42 @@
 @props(['class' => ''])
 
-<div x-data="{ open: false }" @click.outside="open = false" class="relative {{ $class }}">
-    <button
-        type="button"
-        @click="open = !open"
-        class="flex items-center gap-1.5 h-9 px-3 rounded-control border border-border-subtle dark:border-gray-700 text-sm text-gray-600 dark:text-gray-300 hover:bg-surface-subtle dark:hover:bg-gray-800 transition"
-        :aria-expanded="open"
-        aria-label="{{ __('messages.nav.settings_language') }}"
-    >
-        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0c-2.485 0-4.5-4.03-4.5-9s2.015-9 4.5-9 4.5 4.03 4.5 9-2.015 9-4.5 9ZM3.6 9h16.8M3.6 15h16.8" />
-        </svg>
-        <span>{{ app()->getLocale() === 'bn' ? __('messages.language.bangla') : __('messages.language.english') }}</span>
-    </button>
+@php
+    $isBangla = app()->getLocale() === 'bn';
+@endphp
 
-    <div
-        x-show="open"
-        x-cloak
-        x-transition
-        class="absolute right-0 mt-2 w-36 rounded-card border border-border-subtle dark:border-gray-700 bg-surface dark:bg-gray-900 shadow-lg py-1 z-50"
+<form
+    method="POST"
+    action="{{ route('locale.update') }}"
+    class="inline-flex {{ $class }}"
+    x-data="localeSwitcher()"
+    @submit.prevent="submit($event)"
+>
+    @csrf
+    <input type="hidden" name="locale" value="{{ $isBangla ? 'en' : 'bn' }}">
+
+    <button
+        type="submit"
+        role="switch"
+        aria-checked="{{ $isBangla ? 'true' : 'false' }}"
+        aria-label="{{ __('messages.nav.settings_language') }}"
+        :disabled="pending"
+        :aria-busy="pending"
+        class="relative inline-flex h-9 w-20 items-center rounded-full border border-border-subtle dark:border-gray-700 bg-surface-subtle dark:bg-gray-800 transition disabled:opacity-60 disabled:cursor-wait"
     >
-        @foreach (\App\Support\Locale::supported() as $locale)
-            <form method="POST" action="{{ route('locale.update') }}">
-                @csrf
-                <input type="hidden" name="locale" value="{{ $locale }}">
-                <button
-                    type="submit"
-                    class="flex w-full items-center justify-between px-3 py-1.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-surface-subtle dark:hover:bg-gray-800 {{ app()->getLocale() === $locale ? 'font-medium text-brand-600 dark:text-brand-400' : '' }}"
-                >
-                    <span>{{ __('messages.language.'.($locale === 'bn' ? 'bangla' : 'english')) }}</span>
-                    @if (app()->getLocale() === $locale)
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                        </svg>
-                    @endif
-                </button>
-            </form>
-        @endforeach
-    </div>
-</div>
+        <span class="absolute left-2 text-[11px] font-medium text-gray-500 dark:text-gray-400">EN</span>
+        <span class="absolute right-2 text-[11px] font-medium text-gray-500 dark:text-gray-400">{{ __('messages.language.bangla') }}</span>
+        {{--
+            Positioned with left/right (not a hardcoded translate-x) so the
+            1px gap to the pill's border stays correct on both sides no
+            matter how wide the active label's text renders — a fixed
+            translate-x tuned for "EN" pushed "বাংলা" flush against the
+            right edge once its text no longer matched the thumb's
+            original width.
+        --}}
+        <span
+            class="absolute z-10 flex h-7 min-w-9 items-center justify-center whitespace-nowrap rounded-full bg-white dark:bg-gray-900 px-1.5 text-[11px] font-semibold text-brand-600 dark:text-brand-400 shadow transition-all duration-200 {{ $isBangla ? 'right-1 left-auto' : 'left-1 right-auto' }}"
+        >
+            {{ $isBangla ? __('messages.language.bangla') : 'EN' }}
+        </span>
+    </button>
+</form>

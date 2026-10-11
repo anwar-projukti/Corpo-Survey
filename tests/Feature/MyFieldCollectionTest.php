@@ -172,6 +172,6 @@ test('my stats reports totals scoped to the authenticated field user only', func
     $response = $this->actingAs($fieldUserA)->getJson('/api/v1/my/stats');
 
     $response->assertOk()
-        ->assertJsonPath('total', 3)
-        ->assertJsonPath('today', 3);
+        ->assertJsonPath('data.total', 3)
+        ->assertJsonPath('data.today', 3);
 });

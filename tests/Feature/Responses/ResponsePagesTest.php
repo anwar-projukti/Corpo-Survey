@@ -69,3 +69,57 @@ test('a response detail page 404s for a survey in a different organization', fun
 
     $response->assertNotFound();
 });
+
+test('an Org Admin sees the export button and bulk approve/reject/archive/delete controls', function () {
+    [$organization, $admin] = orgAdminForResponsePages();
+    $survey = Survey::factory()->create(['organization_id' => $organization->id]);
+
+    $response = $this->actingAs($admin)->get("/surveys/{$survey->id}/responses");
+
+    $response->assertOk()
+        ->assertSee('toggleExportPanel()', escape: false)
+        ->assertSee("bulkReview('approved')", escape: false)
+        ->assertSee('bulkDelete()', escape: false);
+});
+
+test('an Editor has response.view but not response.export/edit/delete, so sees none of the write controls on the response table page', function () {
+    $organization = Organization::factory()->create();
+    $editor = User::factory()->create(['organization_id' => $organization->id]);
+    $editor->assignRole('Editor');
+    $survey = Survey::factory()->create(['organization_id' => $organization->id]);
+
+    $response = $this->actingAs($editor)->get("/surveys/{$survey->id}/responses");
+
+    $response->assertOk()
+        ->assertDontSee('toggleExportPanel()', escape: false)
+        ->assertDontSee("bulkReview('approved')", escape: false)
+        ->assertDontSee('bulkDelete()', escape: false);
+});
+
+test('an Org Admin sees review, edit-answer, and add-note controls on the response detail page', function () {
+    [$organization, $admin] = orgAdminForResponsePages();
+    $survey = Survey::factory()->create(['organization_id' => $organization->id]);
+    $surveyResponse = SurveyResponse::factory()->create(['organization_id' => $organization->id, 'survey_id' => $survey->id]);
+
+    $response = $this->actingAs($admin)->get("/surveys/{$survey->id}/responses/{$surveyResponse->id}");
+
+    $response->assertOk()
+        ->assertSee("review('approved')", escape: false)
+        ->assertSee('startEdit(', escape: false)
+        ->assertSee('addNote()', escape: false);
+});
+
+test('an Editor has response.view but not response.edit, so sees none of the write controls on the response detail page', function () {
+    $organization = Organization::factory()->create();
+    $editor = User::factory()->create(['organization_id' => $organization->id]);
+    $editor->assignRole('Editor');
+    $survey = Survey::factory()->create(['organization_id' => $organization->id]);
+    $surveyResponse = SurveyResponse::factory()->create(['organization_id' => $organization->id, 'survey_id' => $survey->id]);
+
+    $response = $this->actingAs($editor)->get("/surveys/{$survey->id}/responses/{$surveyResponse->id}");
+
+    $response->assertOk()
+        ->assertDontSee("review('approved')", escape: false)
+        ->assertDontSee('startEdit(', escape: false)
+        ->assertDontSee('addNote()', escape: false);
+});

@@ -11,7 +11,7 @@
     </button>
 
     <div x-show="showRules" x-cloak x-transition class="border-t border-border-subtle dark:border-gray-800 p-4 space-y-3">
-        <p x-show="version.rules.length === 0" class="text-sm text-gray-400 dark:text-gray-500">
+        <p x-show="version.rules.length === 0" class="text-sm text-gray-500 dark:text-gray-400">
             {{ __('surveys.builder.no_rules') }}
         </p>
 

@@ -56,3 +56,31 @@
 :lang(bn) {
     line-height: 1.75;
 }
+
+/* A visible focus indicator on whatever element last received keyboard
+   focus (spec §16) — a global fallback for the many ad-hoc <input>/
+   <select>/<button> elements across the app that don't already carry
+   their own focus-ring classes (x-text-input does; most raw form
+   controls built directly in a Blade view don't). :focus-visible rather
+   than :focus so a mouse click doesn't show the ring, only actual
+   keyboard/programmatic focus does — matching how sighted mouse users
+   already expect these controls to look. */
+:focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+}
+
+/* Respect a user's reduced-motion preference (spec §16) — every
+   transition/animation in the app becomes instant rather than forcibly
+   disabled via `!important` overrides per-component, which would be
+   fragile against new Tailwind transition utilities added later. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

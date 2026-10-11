@@ -8,6 +8,7 @@ use App\Http\Resources\Responses\SurveyResponseResource;
 use App\Models\Survey;
 use App\Models\SurveyResponse;
 use App\Models\SurveyVersion;
+use App\Services\AuditLogger;
 use App\Support\ResponseFilterEngine;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -24,6 +25,8 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 class SurveyResponseController extends Controller
 {
     use ResolvesSurveyVersion;
+
+    public function __construct(private readonly AuditLogger $auditLogger) {}
 
     private const SORTABLE_COLUMNS = ['submitted_at', 'started_at', 'created_at', 'status', 'review_status'];
 
@@ -60,14 +63,24 @@ class SurveyResponseController extends Controller
         );
     }
 
-    public function destroy(Survey $survey, SurveyResponse $response): JsonResponse
+    public function destroy(Request $request, Survey $survey, SurveyResponse $response): JsonResponse
     {
         $this->authorize('delete', $response);
         abort_unless($response->survey_id === $survey->id, 404);
 
+        // Logged before delete() (not after) for the same reason the audit
+        // entry itself matters here (spec §5.10) — the subject must still
+        // resolve to a real row for the morph relation to record something
+        // meaningful, and a soft delete happening a moment later doesn't
+        // change what's true to log: this response existed and was deleted
+        // by this actor at this time.
+        $this->auditLogger->log('response.deleted', subject: $response, properties: [
+            'survey_id' => $survey->id,
+        ], actor: $request->user());
+
         $response->delete();
 
-        return response()->json(['success' => true, 'message' => 'Response deleted.']);
+        return $this->successResponse('Response deleted.');
     }
 
     /**

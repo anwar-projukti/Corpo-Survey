@@ -40,6 +40,21 @@ class SurveyResponsePolicy
         return $user->can('response.export');
     }
 
+    /**
+     * Whether $user may import respondent data (spec §10.4) — reuses
+     * response.export's shape (no model instance to check organization
+     * against; the org boundary is enforced by BelongsToOrganization
+     * stamping organization_id on the created ImportJob/Respondent rows,
+     * not by this ability check) but its own permission, since exporting
+     * and importing are distinct capabilities an org may want to grant
+     * separately (e.g. a Viewer with report.export should never gain the
+     * ability to write new respondent data).
+     */
+    public function import(User $user): bool
+    {
+        return $user->can('response.import');
+    }
+
     private function sameOrganization(User $user, SurveyResponse $response): bool
     {
         return $user->organization_id === $response->organization_id;

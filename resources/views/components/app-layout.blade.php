@@ -6,35 +6,39 @@
     @include('partials.head', ['title' => $title])
 </head>
 <body class="antialiased font-sans bg-surface-subtle dark:bg-gray-950 text-gray-900 dark:text-gray-100">
-    <div class="flex min-h-screen">
-        <x-sidebar-nav class="hidden lg:flex" />
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-control focus:bg-brand-600 focus:text-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium">
+        {{ __('messages.actions.skip_to_content') }}
+    </a>
 
-        <div class="flex-1 flex flex-col min-w-0">
-            <header class="h-16 shrink-0 flex items-center justify-between gap-4 px-4 sm:px-6 border-b border-border-subtle dark:border-gray-800 bg-surface dark:bg-gray-900">
-                <div class="flex items-center gap-2 lg:hidden">
-                    <span class="font-semibold text-gray-900 dark:text-gray-100">{{ config('app.name') }}</span>
-                </div>
+    <div class="flex flex-col min-h-screen">
+        <x-impersonation-banner />
 
-                <div class="flex-1"></div>
+        <div class="flex flex-1 min-h-0">
+            <x-sidebar-nav class="hidden lg:flex" />
 
-                <div class="flex items-center gap-2">
-                    <x-language-switcher />
-                    <x-theme-switcher />
+            <div class="flex-1 flex flex-col min-w-0">
+                <header class="h-16 shrink-0 flex items-center justify-between gap-4 px-4 sm:px-6 border-b border-border-subtle dark:border-gray-800 bg-surface dark:bg-gray-900">
+                    <div class="flex items-center gap-2 lg:hidden">
+                        <x-app-logo class="h-6 w-6" />
+                        <span class="font-semibold text-gray-900 dark:text-gray-100">{{ config('app.name') }}</span>
+                    </div>
 
-                    @auth
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="h-9 px-3 rounded-control text-sm text-gray-600 dark:text-gray-300 hover:bg-surface-subtle dark:hover:bg-gray-800 transition">
-                                {{ __('messages.actions.log_out') }}
-                            </button>
-                        </form>
-                    @endauth
-                </div>
-            </header>
+                    <div class="flex-1"></div>
 
-            <main class="flex-1 min-w-0">
-                {{ $slot }}
-            </main>
+                    <div class="flex items-center gap-2">
+                        <x-language-switcher />
+                        <x-theme-switcher />
+
+                        @auth
+                            <x-profile-menu />
+                        @endauth
+                    </div>
+                </header>
+
+                <main id="main-content" tabindex="-1" class="flex-1 min-w-0 focus:outline-none">
+                    {{ $slot }}
+                </main>
+            </div>
         </div>
     </div>
 </body>

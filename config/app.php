@@ -17,6 +17,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Public Contact Details
+    |--------------------------------------------------------------------------
+    |
+    | Shown on the public landing page's Contact section — not used for
+    | transactional mail (see mail.from for that).
+    |
+    */
+
+    'contact_email' => env('CONTACT_EMAIL', env('MAIL_FROM_ADDRESS', 'hello@example.com')),
+    'contact_phone' => env('CONTACT_PHONE', '+880 1XXX-XXXXXX'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |

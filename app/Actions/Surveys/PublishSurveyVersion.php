@@ -5,6 +5,7 @@ namespace App\Actions\Surveys;
 use App\Enums\SurveyVersionStatus;
 use App\Models\Survey;
 use App\Models\User;
+use App\Services\AuditLogger;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -18,6 +19,8 @@ use Illuminate\Validation\ValidationException;
  */
 class PublishSurveyVersion
 {
+    public function __construct(private readonly AuditLogger $auditLogger) {}
+
     public function handle(Survey $survey, User $publisher): Survey
     {
         $draft = $survey->currentDraftVersion;
@@ -34,7 +37,7 @@ class PublishSurveyVersion
             ]);
         }
 
-        return DB::transaction(function () use ($survey, $publisher, $draft) {
+        $survey = DB::transaction(function () use ($survey, $publisher, $draft) {
             $previouslyPublished = $survey->currentPublishedVersion;
 
             if ($previouslyPublished) {
@@ -51,5 +54,11 @@ class PublishSurveyVersion
 
             return $survey->fresh();
         });
+
+        $this->auditLogger->log('survey.published', subject: $survey, properties: [
+            'version_id' => $survey->current_published_version_id,
+        ], actor: $publisher);
+
+        return $survey;
     }
 }

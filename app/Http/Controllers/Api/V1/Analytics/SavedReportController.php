@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Analytics\StoreSavedReportRequest;
 use App\Http\Requests\Analytics\UpdateSavedReportRequest;
 use App\Http\Resources\Analytics\SavedReportResource;
+use App\Http\Resources\Analytics\SavedReportRunResource;
 use App\Models\SavedReport;
 use App\Models\Survey;
 use App\Support\SavedReportRunner;
@@ -61,10 +62,10 @@ class SavedReportController extends Controller
         return response()->json(['success' => true, 'message' => 'Report deleted.']);
     }
 
-    public function run(SavedReport $savedReport, SavedReportRunner $runner): JsonResponse
+    public function run(SavedReport $savedReport, SavedReportRunner $runner): SavedReportRunResource
     {
         $this->authorize('view', $savedReport);
 
-        return response()->json(['data' => $runner->run($savedReport)]);
+        return new SavedReportRunResource($runner->run($savedReport));
     }
 }

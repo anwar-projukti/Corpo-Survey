@@ -28,9 +28,10 @@ function defaultConfigFor(type) {
  * before updating local state, since section/question/option ids only
  * exist once the server has created the row.
  */
-export default function surveyBuilder(surveyId) {
+export default function surveyBuilder(surveyId, canEdit) {
     return {
         surveyId,
+        canEdit,
         survey: null,
         version: null, // the version currently being edited (always the draft) or viewed (published, read-only)
         mode: 'draft', // 'draft' | 'published' — which version's tree is shown
@@ -39,6 +40,40 @@ export default function surveyBuilder(surveyId) {
         saveError: null,
         activeQuestionId: null,
         showRules: false,
+
+        // Shared delete confirmation modal — see resources/views/organizations/
+        // index.blade.php for the same pattern (askConfirm/runConfirm/cancelConfirm).
+        confirmOpen: false,
+        confirmTitle: '',
+        confirmBody: '',
+        confirmVariant: 'danger',
+        confirmBusy: false,
+        confirmAction: null,
+
+        askConfirm({ title, body, onConfirm, variant = 'danger' }) {
+            this.confirmTitle = title;
+            this.confirmBody = body;
+            this.confirmVariant = variant;
+            this.confirmAction = onConfirm;
+            this.confirmOpen = true;
+        },
+
+        async runConfirm() {
+            if (!this.confirmAction) return;
+            this.confirmBusy = true;
+            try {
+                await this.confirmAction();
+                this.confirmOpen = false;
+            } finally {
+                this.confirmBusy = false;
+                this.confirmAction = null;
+            }
+        },
+
+        cancelConfirm() {
+            this.confirmOpen = false;
+            this.confirmAction = null;
+        },
 
         async init() {
             await this.load();
@@ -57,8 +92,14 @@ export default function surveyBuilder(surveyId) {
             this.version = mode === 'draft' ? this.survey.current_draft_version : this.survey.current_published_version;
         },
 
+        // canEdit reflects SurveyPolicy::update (survey.edit) — folded in here
+        // rather than checked separately by every consumer (section-card,
+        // rules-panel, question-config-panel, rule-editor, question-row,
+        // question-type-picker all key off this one getter) so a Viewer
+        // (survey.view without survey.edit) can't type into/reorder/delete
+        // anything just because a draft happens to be open.
         get isDraftEditable() {
-            return this.mode === 'draft' && this.version && this.version.status === 'draft';
+            return this.canEdit && this.mode === 'draft' && this.version && this.version.status === 'draft';
         },
 
         async withSaving(fn) {
@@ -92,9 +133,15 @@ export default function surveyBuilder(surveyId) {
             });
         },
 
-        async deleteSection(section) {
-            if (!confirm(window.__i18n.confirm_delete_section)) return;
+        confirmDeleteSection(section) {
+            this.askConfirm({
+                title: window.__i18n.delete_section,
+                body: window.__i18n.confirm_delete_section,
+                onConfirm: () => this.deleteSection(section),
+            });
+        },
 
+        async deleteSection(section) {
             await this.withSaving(async () => {
                 await api.sections.destroy(section.id);
                 this.version.sections = this.version.sections.filter((s) => s.id !== section.id);
@@ -129,9 +176,15 @@ export default function surveyBuilder(surveyId) {
             });
         },
 
-        async deleteQuestion(section, question) {
-            if (!confirm(window.__i18n.confirm_delete_question)) return;
+        confirmDeleteQuestion(section, question) {
+            this.askConfirm({
+                title: window.__i18n.delete_question,
+                body: window.__i18n.confirm_delete_question,
+                onConfirm: () => this.deleteQuestion(section, question),
+            });
+        },
 
+        async deleteQuestion(section, question) {
             await this.withSaving(async () => {
                 await api.questions.destroy(question.id);
                 section.questions = section.questions.filter((q) => q.id !== question.id);
@@ -206,9 +259,16 @@ export default function surveyBuilder(surveyId) {
 
         // --- Lifecycle ---------------------------------------------------
 
-        async publish() {
-            if (!confirm(window.__i18n.publish_confirm)) return;
+        confirmPublish() {
+            this.askConfirm({
+                title: window.__i18n.publish,
+                body: window.__i18n.publish_confirm,
+                onConfirm: () => this.publish(),
+                variant: 'primary',
+            });
+        },
 
+        async publish() {
             await this.withSaving(async () => {
                 this.survey = await api.surveys.publish(this.surveyId);
                 this.viewVersion('published');
@@ -231,6 +291,11 @@ export default function surveyBuilder(surveyId) {
             await navigator.clipboard.writeText(url);
             this.publicLinkCopied = true;
             setTimeout(() => (this.publicLinkCopied = false), 2000);
+        },
+
+        async viewPublicLink() {
+            const url = await api.surveys.publicLink(this.surveyId);
+            window.open(url, '_blank', 'noopener');
         },
 
         // --- Field assignments (spec §7) -----------------------------------

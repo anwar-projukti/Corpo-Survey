@@ -16,7 +16,7 @@ class RolesAndPermissionsSeeder extends Seeder
      */
     private array $permissions = [
         'survey.view', 'survey.create', 'survey.edit', 'survey.delete', 'survey.publish',
-        'response.view', 'response.edit', 'response.delete', 'response.export',
+        'response.view', 'response.edit', 'response.delete', 'response.export', 'response.import',
         'report.view', 'report.export',
         'user.manage', 'settings.manage',
     ];
@@ -30,7 +30,7 @@ class RolesAndPermissionsSeeder extends Seeder
     private array $rolePermissions = [
         'Org Admin' => [
             'survey.view', 'survey.create', 'survey.edit', 'survey.delete', 'survey.publish',
-            'response.view', 'response.edit', 'response.delete', 'response.export',
+            'response.view', 'response.edit', 'response.delete', 'response.export', 'response.import',
             'report.view', 'report.export',
             'user.manage', 'settings.manage',
         ],

@@ -59,6 +59,16 @@ class RequireTwoFactorForPrivilegedRoles
             return $next($request);
         }
 
+        // A Super Admin impersonating an org's Org Admin (spec §13,
+        // App\Http\Controllers\ImpersonationController) already cleared
+        // this bar as themselves to reach /organizations in the first
+        // place. Re-enforcing it against the impersonated account's own
+        // 2FA state would strand them on the setup screen for someone
+        // else's account they're not trying to permanently configure.
+        if ($request->session()->has('impersonator_id')) {
+            return $next($request);
+        }
+
         /** @var User|null $user */
         $user = Auth::user();
 

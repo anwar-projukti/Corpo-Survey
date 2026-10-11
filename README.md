@@ -1,59 +1,76 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Corpo Survey Management
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A multi-tenant survey platform: a dynamic, schema-driven survey builder, a Typeform-style public respondent experience, door-to-door field collection, response management with a full audit trail, analytics and custom reports, Excel import/export, a REST API, and bilingual (English + বাংলা) support with light/dark theming.
 
-## About Laravel
+Built on Laravel 12, Alpine.js, and Tailwind CSS — see the full build brief for the product spec this implements.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Requirements
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- PHP 8.3+
+- MySQL 8
+- Redis (cache, queue, sessions)
+- Node.js 20+ (asset build)
+- Composer
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Local setup
 
-## Learning Laravel
+```bash
+composer install
+npm install
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+cp .env.example .env
+php artisan key:generate
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+# Point DB_* / REDIS_* in .env at your local MySQL and Redis, then:
+php artisan migrate --seed
 
-## Laravel Sponsors
+npm run build   # or `npm run dev` for a live-reloading dev server
+php artisan serve
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+A queue worker is required for exports, imports, and other queued jobs:
 
-### Premium Partners
+```bash
+php artisan queue:work
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+The scheduler (nightly user-stats refresh and data-retention purge, see `routes/console.php`) needs a cron entry pointed at `php artisan schedule:run` every minute in any real environment.
 
-## Contributing
+## Testing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+php artisan test    # Pest, in-memory SQLite — no local DB/Redis needed
+composer audit       # dependency vulnerability scan
+npm audit --audit-level=high
+```
 
-## Code of Conduct
+CI (`.github/workflows/ci.yml`) runs the full backend and frontend test/lint/audit suite on every push and pull request.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Deployment / production readiness
 
-## Security Vulnerabilities
+Before pointing a production environment at a fresh deploy:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+1. **Environment** — start from `.env.production.example` (or `.env.staging.example`), never `.env.example`. Confirm `APP_DEBUG=false`, `APP_ENV=production`, `TWO_FACTOR_ENFORCED=true`, and that every secret (`APP_KEY`, DB/Redis credentials, mail, CAPTCHA, AWS keys) is injected from a real secrets manager at deploy time, not committed to the file.
+2. **Cache the framework** — run after every deploy, before serving traffic:
+   ```bash
+   php artisan config:cache
+   php artisan route:cache
+   php artisan view:cache
+   php artisan event:cache
+   ```
+   (`php artisan optimize` runs the config/route/view steps in one command.) Skipping this means every request re-parses config and re-resolves routes from scratch.
+3. **Migrate**: `php artisan migrate --force`.
+4. **Queue workers** — run `php artisan queue:work` under a process supervisor (systemd/Supervisor), not `php artisan serve`'s inline sync driver. Exports, imports, and the nightly stats/retention jobs all depend on a real worker.
+5. **Scheduler** — a cron entry (`* * * * * php artisan schedule:run`) is required for the nightly `RefreshUserSurveyStatsJob` and `PurgeExpiredDataJob` (see `routes/console.php`) to ever fire.
+6. **Static assets** — `public/build/*` (Vite's fingerprinted output) is served directly by the web server, not through PHP. Configure the web server (nginx/Apache) to send a long-lived, immutable `Cache-Control` header for that path, e.g. for nginx:
+   ```nginx
+   location /build/ {
+       expires 1y;
+       add_header Cache-Control "public, immutable";
+   }
+   ```
+   Fingerprinted filenames make this safe — a new deploy produces new filenames, so there's no stale-cache risk.
+7. **TLS termination** — the app trusts every proxy in front of it (`bootstrap/app.php`'s `trustProxies(at: '*')`) so `X-Forwarded-Proto`/`X-Forwarded-For` are honored — this assumes the app is never reachable directly from the internet, only through your load balancer/reverse proxy. If that's not true in your topology, narrow this to the proxy's actual CIDR.
+8. **Reverse proxy / CDN** should terminate TLS and redirect HTTP → HTTPS; the app itself enforces `https://` URL generation in `production`/`staging` environments (`AppServiceProvider::boot()`) and sends HSTS whenever a request actually arrives over HTTPS (`app/Http/Middleware/SecurityHeaders.php`).
 
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+See `docs/api` (Scramble-generated OpenAPI docs, linked from the dashboard's API settings) for the REST API reference.

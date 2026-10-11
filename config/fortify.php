@@ -144,7 +144,14 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // Registration is handled by our own RegisterController
+        // (routes/web.php + app/Http/Controllers/RegisterController.php)
+        // rather than Fortify's built-in one — Fortify's
+        // RegisteredUserController logs the new user in immediately
+        // (Http\Controllers\RegisteredUserController::store), which skips
+        // the sign-in step entirely; ours creates the account via the same
+        // CreateNewUser action but sends them to /login instead.
+        // Features::registration(),
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::updateProfileInformation(),

@@ -9,7 +9,7 @@ test('creates a survey with an initial draft version', function () {
     $organization = Organization::factory()->create();
     $user = User::factory()->create(['organization_id' => $organization->id]);
 
-    $survey = (new CreateSurvey)->handle($user, ['title' => 'My Survey']);
+    $survey = app(CreateSurvey::class)->handle($user, ['title' => 'My Survey']);
 
     expect($survey->title)->toBe('My Survey')
         ->and($survey->slug)->toBe('my-survey')
@@ -24,8 +24,8 @@ test('two surveys with the same title in the same organization get distinct slug
     $organization = Organization::factory()->create();
     $user = User::factory()->create(['organization_id' => $organization->id]);
 
-    $first = (new CreateSurvey)->handle($user, ['title' => 'Customer Feedback']);
-    $second = (new CreateSurvey)->handle($user, ['title' => 'Customer Feedback']);
+    $first = app(CreateSurvey::class)->handle($user, ['title' => 'Customer Feedback']);
+    $second = app(CreateSurvey::class)->handle($user, ['title' => 'Customer Feedback']);
 
     expect($first->slug)->not->toBe($second->slug);
 });
@@ -36,8 +36,8 @@ test('the same title is allowed to reuse a slug in a different organization', fu
     $userA = User::factory()->create(['organization_id' => $orgA->id]);
     $userB = User::factory()->create(['organization_id' => $orgB->id]);
 
-    $surveyA = (new CreateSurvey)->handle($userA, ['title' => 'Customer Feedback']);
-    $surveyB = (new CreateSurvey)->handle($userB, ['title' => 'Customer Feedback']);
+    $surveyA = app(CreateSurvey::class)->handle($userA, ['title' => 'Customer Feedback']);
+    $surveyB = app(CreateSurvey::class)->handle($userB, ['title' => 'Customer Feedback']);
 
     expect($surveyA->slug)->toBe($surveyB->slug);
 });

@@ -36,7 +36,7 @@ class MySurveyController extends Controller
         }
 
         if (! $survey->currentPublishedVersion) {
-            return response()->json(['message' => 'This survey has no published version.'], 404);
+            return $this->errorResponse('This survey has no published version.', 404);
         }
 
         $survey->load('currentPublishedVersion.sections.questions.options', 'currentPublishedVersion.rules');

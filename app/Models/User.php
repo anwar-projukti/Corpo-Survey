@@ -81,9 +81,63 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(SurveyResponse::class, 'collected_by_user_id');
     }
 
+    public function surveys(): HasMany
+    {
+        return $this->hasMany(Survey::class, 'created_by');
+    }
+
+    public function auditLogEntries(): HasMany
+    {
+        return $this->hasMany(AuditLog::class, 'actor_id');
+    }
+
     public function isSuperAdmin(): bool
     {
         return $this->organization_id === null && $this->hasRole('Super Admin');
+    }
+
+    /**
+     * True only for a user whose sole role is Field User — someone who
+     * exclusively does door-to-door collection (spec §7) via /my/surveys
+     * and never the admin survey builder. Someone who holds Field User
+     * alongside a higher-privileged role (e.g. an Org Admin covering field
+     * work personally) still gets full admin access, so this is checked
+     * by exclusion rather than a plain hasRole('Field User').
+     */
+    public function isFieldUserOnly(): bool
+    {
+        return $this->hasRole('Field User') && ! $this->hasAnyRole(['Super Admin', 'Org Admin', 'Editor']);
+    }
+
+    /**
+     * The single role shown in the UI (sidebar/header) when a user holds
+     * more than one — picked by seniority since that's the more relevant
+     * one to display, not by Spatie's arbitrary role-assignment order.
+     */
+    public function primaryRoleName(): ?string
+    {
+        foreach (['Super Admin', 'Org Admin', 'Editor', 'Field User', 'Viewer'] as $role) {
+            if ($this->hasRole($role)) {
+                return $role;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Up to two letters for the header's avatar — first letter of the
+     * first two words of the name ("Org Admin" -> "OA"), or just the
+     * first letter for a single-word name.
+     */
+    public function initials(): string
+    {
+        $words = array_filter(explode(' ', trim($this->name)));
+
+        return mb_strtoupper(implode('', array_map(
+            fn (string $word) => mb_substr($word, 0, 1),
+            array_slice($words, 0, 2)
+        )));
     }
 
     public function isActive(): bool

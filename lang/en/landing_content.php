@@ -1,0 +1,60 @@
+<?php
+
+return [
+    'title' => 'Landing Page',
+    'body' => 'Edit the public landing page (features, pricing, about, contact) shown to visitors before they sign in. Leave a field blank to keep its default text.',
+    'load_failed' => 'Could not load the landing page content. Try refreshing the page.',
+    'save' => 'Save changes',
+    'saving' => 'Saving…',
+    'save_failed' => 'Could not save your changes. Please try again.',
+    'saved' => 'Saved.',
+    'view_live' => 'View live page',
+
+    'column_english' => 'English',
+    'column_bangla' => 'বাংলা',
+
+    'section_branding' => 'Branding',
+    'section_branding_body' => 'The logo shown in the sidebar, mobile header, sign-in screen, and public landing page.',
+    'logo_upload' => 'Upload logo',
+    'logo_reset' => 'Reset to default',
+    'logo_help' => 'PNG, JPG, or WEBP, at least 64×64px, up to 2MB. Square images work best.',
+    'logo_upload_failed' => 'Could not upload the logo. Please try again.',
+
+    'section_hero' => 'Hero',
+    'section_hero_body' => 'The first thing visitors see at the top of the page.',
+    'field_hero_eyebrow' => 'Eyebrow badge',
+    'field_hero_tagline' => 'Headline',
+    'field_hero_body' => 'Subheading',
+    'field_hero_footnote' => 'Footnote',
+
+    'section_features' => 'Features',
+    'section_features_body' => 'The three feature cards and their section heading.',
+    'field_features_title' => 'Section heading',
+    'field_feature_title' => 'Card title',
+    'field_feature_body' => 'Card description',
+    'feature_1' => 'Feature 1 — Survey builder',
+    'feature_2' => 'Feature 2 — Field collection',
+    'feature_3' => 'Feature 3 — Analytics',
+
+    'section_pricing' => 'Pricing',
+    'section_pricing_body' => 'The pricing call-to-action block.',
+    'field_pricing_title' => 'Heading',
+    'field_pricing_body' => 'Description',
+    'manage_pricing_plans' => 'Manage plans',
+
+    'section_about' => 'About',
+    'section_about_body' => 'The About card and its three stats.',
+    'field_about_title' => 'Heading',
+    'field_about_body' => 'Description',
+    'field_about_stat_response_types' => 'Stat: Collection modes',
+    'field_about_stat_languages' => 'Stat: Languages',
+    'field_about_stat_offline' => 'Stat: Field collection',
+
+    'section_contact' => 'Contact',
+    'section_contact_body' => 'Contact details shown to visitors, plus the email and phone number, which are not translated.',
+    'field_contact_title' => 'Heading',
+    'field_contact_body' => 'Description',
+    'field_contact_email' => 'Email address',
+    'field_contact_phone' => 'Phone number',
+    'field_contact_office_address' => 'Office address',
+];

@@ -1,5 +1,10 @@
-<x-guest-layout :title="__('messages.auth.login_title')">
-    <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">{{ __('messages.auth.login_title') }}</h1>
+@php
+    $portal ??= \App\Support\LoginPortal::USER;
+    $titleKey = \App\Support\LoginPortal::titleKeyFor($portal);
+@endphp
+
+<x-guest-layout :title="__($titleKey)">
+    <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">{{ __($titleKey) }}</h1>
 
     @if (session('status'))
         <div class="mt-4 text-sm text-green-600 dark:text-green-400">{{ session('status') }}</div>
@@ -7,6 +12,7 @@
 
     <form method="POST" action="{{ route('login.store') }}" class="mt-6 space-y-4">
         @csrf
+        <input type="hidden" name="portal" value="{{ $portal }}">
 
         <div>
             <x-input-label for="email">{{ __('messages.auth.email') }}</x-input-label>
@@ -30,6 +36,8 @@
 
     <div class="mt-4 flex justify-between text-sm">
         <a href="{{ route('password.request') }}" class="text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400">{{ __('messages.auth.forgot_password') }}</a>
-        <a href="{{ route('register') }}" class="text-gray-600 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400">{{ __('messages.auth.create_account') }}</a>
+        @if ($portal !== \App\Support\LoginPortal::ADMIN)
+            <a href="{{ route('register') }}" class="font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 hover:underline">{{ __('messages.auth.create_account') }}</a>
+        @endif
     </div>
 </x-guest-layout>

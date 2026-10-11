@@ -20,40 +20,80 @@
 
         <template x-if="!loading && response">
             <div class="mt-4 space-y-6">
-                <div class="flex items-center justify-between">
-                    <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">{{ $survey->title }}</h1>
-
-                    <div class="flex items-center gap-2 text-sm">
-                        <button type="button" :disabled="reviewWorking" @click="review('approved')" class="rounded-control border border-border-subtle dark:border-gray-700 px-3 py-1.5 hover:bg-surface-subtle dark:hover:bg-gray-800">
-                            {{ __('surveys.responses.bulk_approve') }}
-                        </button>
-                        <button type="button" :disabled="reviewWorking" @click="review('rejected')" class="rounded-control border border-border-subtle dark:border-gray-700 px-3 py-1.5 hover:bg-surface-subtle dark:hover:bg-gray-800">
-                            {{ __('surveys.responses.bulk_reject') }}
-                        </button>
-                        <button type="button" :disabled="reviewWorking" @click="review('archived')" class="rounded-control border border-border-subtle dark:border-gray-700 px-3 py-1.5 hover:bg-surface-subtle dark:hover:bg-gray-800">
-                            {{ __('surveys.responses.bulk_archive') }}
-                        </button>
-                    </div>
-                </div>
-
-                {{-- Metadata --}}
-                <div class="rounded-card border border-border-subtle dark:border-gray-800 bg-surface dark:bg-gray-900 p-4 grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
-                    <div>
-                        <p class="text-xs text-gray-400 dark:text-gray-500">{{ __('surveys.responses.detail_review_status') }}</p>
+                <div class="flex items-center justify-between flex-wrap gap-3">
+                    <div class="flex items-center gap-3">
+                        <h1 class="text-xl font-semibold text-gray-900 dark:text-gray-100">{{ $survey->title }}</h1>
                         <span
-                            class="inline-block text-xs px-2 py-0.5 rounded-control"
+                            class="inline-block text-xs px-2 py-0.5 rounded-control font-medium"
                             :class="{
                                 pending: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300',
                                 approved: 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300',
                                 rejected: 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300',
                                 archived: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
                             }[response.review_status]"
-                            x-text="response.review_status"
+                            x-text="{
+                                pending: @js(__('surveys.responses.review_pending')),
+                                approved: @js(__('surveys.responses.review_approved')),
+                                rejected: @js(__('surveys.responses.review_rejected')),
+                                archived: @js(__('surveys.responses.review_archived')),
+                            }[response.review_status]"
                         ></span>
                     </div>
+
+                    @can('update', $response)
+                        <div class="flex items-center gap-2 text-sm">
+                            <button
+                                type="button"
+                                :disabled="reviewWorking || response.review_status === 'approved'"
+                                @click="review('approved')"
+                                class="rounded-control border px-3 py-1.5 disabled:cursor-default"
+                                :class="response.review_status === 'approved'
+                                    ? 'border-green-300 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-300'
+                                    : 'border-border-subtle dark:border-gray-700 hover:bg-surface-subtle dark:hover:bg-gray-800'"
+                            >
+                                {{ __('surveys.responses.bulk_approve') }}
+                            </button>
+                            <button
+                                type="button"
+                                :disabled="reviewWorking || response.review_status === 'rejected'"
+                                @click="review('rejected')"
+                                class="rounded-control border px-3 py-1.5 disabled:cursor-default"
+                                :class="response.review_status === 'rejected'
+                                    ? 'border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300'
+                                    : 'border-border-subtle dark:border-gray-700 hover:bg-surface-subtle dark:hover:bg-gray-800'"
+                            >
+                                {{ __('surveys.responses.bulk_reject') }}
+                            </button>
+                            <button
+                                type="button"
+                                :disabled="reviewWorking || response.review_status === 'archived'"
+                                @click="review('archived')"
+                                class="rounded-control border px-3 py-1.5 disabled:cursor-default"
+                                :class="response.review_status === 'archived'
+                                    ? 'border-gray-400 bg-gray-100 text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300'
+                                    : 'border-border-subtle dark:border-gray-700 hover:bg-surface-subtle dark:hover:bg-gray-800'"
+                            >
+                                {{ __('surveys.responses.bulk_archive') }}
+                            </button>
+                        </div>
+                    @endcan
+                </div>
+
+                {{-- Metadata --}}
+                <div class="rounded-card border border-border-subtle dark:border-gray-800 bg-surface dark:bg-gray-900 p-4 grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
                     <div>
                         <p class="text-xs text-gray-400 dark:text-gray-500">{{ __('surveys.responses.column_status') }}</p>
-                        <p class="text-gray-900 dark:text-gray-100" x-text="response.status"></p>
+                        <span
+                            class="inline-block text-xs px-2 py-0.5 rounded-control"
+                            :class="{
+                                partial: 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
+                                complete: 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300',
+                            }[response.status]"
+                            x-text="{
+                                partial: @js(__('surveys.responses.status_partial')),
+                                complete: @js(__('surveys.responses.status_complete')),
+                            }[response.status]"
+                        ></span>
                     </div>
                     <div>
                         <p class="text-xs text-gray-400 dark:text-gray-500">{{ __('surveys.responses.column_collection_method') }}</p>
@@ -82,47 +122,51 @@
                             <div class="rounded-card border border-border-subtle dark:border-gray-800 bg-surface dark:bg-gray-900 p-4">
                                 <div class="flex items-start justify-between gap-3">
                                     <p class="text-sm font-medium text-gray-900 dark:text-gray-100" x-text="question.label"></p>
-                                    <button
-                                        type="button"
-                                        x-show="editingAnswerId !== (answerFor(question.id)?.id ?? `new-${question.id}`)"
-                                        @click="startEdit(answerFor(question.id), question.id)"
-                                        class="shrink-0 text-xs text-brand-600 dark:text-brand-400 hover:underline"
-                                    >
-                                        {{ __('surveys.responses.detail_edit_answer') }}
-                                    </button>
+                                    @can('update', $response)
+                                        <button
+                                            type="button"
+                                            x-show="editingAnswerId !== (answerFor(question.id)?.id ?? `new-${question.id}`)"
+                                            @click="startEdit(answerFor(question.id), question.id)"
+                                            class="shrink-0 text-xs text-brand-600 dark:text-brand-400 hover:underline"
+                                        >
+                                            {{ __('surveys.responses.detail_edit_answer') }}
+                                        </button>
+                                    @endcan
                                 </div>
 
                                 <template x-if="editingAnswerId !== (answerFor(question.id)?.id ?? `new-${question.id}`)">
                                     <p class="mt-1 text-sm text-gray-600 dark:text-gray-300" x-text="formatAnswer(answerFor(question.id)?.value)"></p>
                                 </template>
 
-                                <template x-if="editingAnswerId === (answerFor(question.id)?.id ?? `new-${question.id}`)">
-                                    <div class="mt-2 space-y-2">
-                                        <textarea
-                                            x-model="editValue"
-                                            rows="2"
-                                            class="block w-full rounded-control border border-border-subtle dark:border-gray-700 bg-surface dark:bg-gray-900 px-2 py-1.5 text-sm"
-                                        ></textarea>
-                                        <p x-show="answerError" x-text="answerError" class="text-xs text-red-600 dark:text-red-400"></p>
-                                        <div class="flex gap-2">
-                                            <button
-                                                type="button"
-                                                :disabled="savingAnswer"
-                                                @click="saveAnswer(answerFor(question.id))"
-                                                class="rounded-control bg-brand-600 hover:bg-brand-700 text-white text-xs font-medium px-2.5 py-1 transition"
-                                            >
-                                                {{ __('surveys.responses.detail_save_answer') }}
-                                            </button>
-                                            <button
-                                                type="button"
-                                                @click="cancelEdit()"
-                                                class="rounded-control border border-border-subtle dark:border-gray-700 text-xs px-2.5 py-1"
-                                            >
-                                                {{ __('surveys.responses.detail_cancel_edit') }}
-                                            </button>
+                                @can('update', $response)
+                                    <template x-if="editingAnswerId === (answerFor(question.id)?.id ?? `new-${question.id}`)">
+                                        <div class="mt-2 space-y-2">
+                                            <textarea
+                                                x-model="editValue"
+                                                rows="2"
+                                                class="block w-full rounded-control border border-border-subtle dark:border-gray-700 bg-surface dark:bg-gray-900 px-2 py-1.5 text-sm"
+                                            ></textarea>
+                                            <p x-show="answerError" x-text="answerError" class="text-xs text-red-600 dark:text-red-400"></p>
+                                            <div class="flex gap-2">
+                                                <button
+                                                    type="button"
+                                                    :disabled="savingAnswer"
+                                                    @click="saveAnswer(answerFor(question.id))"
+                                                    class="rounded-control bg-brand-600 hover:bg-brand-700 text-white text-xs font-medium px-2.5 py-1 transition"
+                                                >
+                                                    {{ __('surveys.responses.detail_save_answer') }}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    @click="cancelEdit()"
+                                                    class="rounded-control border border-border-subtle dark:border-gray-700 text-xs px-2.5 py-1"
+                                                >
+                                                    {{ __('surveys.responses.detail_cancel_edit') }}
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                </template>
+                                    </template>
+                                @endcan
                             </div>
                         </template>
                     </div>
@@ -148,23 +192,25 @@
                         </template>
                     </div>
 
-                    <div class="flex gap-2">
-                        <input
-                            type="text"
-                            x-model="newNote"
-                            @keydown.enter="addNote()"
-                            placeholder="{{ __('surveys.responses.detail_note_placeholder') }}"
-                            class="flex-1 rounded-control border border-border-subtle dark:border-gray-700 bg-surface dark:bg-gray-900 px-3 py-2 text-sm"
-                        >
-                        <button
-                            type="button"
-                            :disabled="addingNote || !newNote.trim()"
-                            @click="addNote()"
-                            class="rounded-control bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-sm font-medium px-3 py-2 transition"
-                        >
-                            {{ __('surveys.responses.detail_add_note') }}
-                        </button>
-                    </div>
+                    @can('update', $response)
+                        <div class="flex gap-2">
+                            <input
+                                type="text"
+                                x-model="newNote"
+                                @keydown.enter="addNote()"
+                                placeholder="{{ __('surveys.responses.detail_note_placeholder') }}"
+                                class="flex-1 rounded-control border border-border-subtle dark:border-gray-700 bg-surface dark:bg-gray-900 px-3 py-2 text-sm"
+                            >
+                            <button
+                                type="button"
+                                :disabled="addingNote || !newNote.trim()"
+                                @click="addNote()"
+                                class="rounded-control bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-sm font-medium px-3 py-2 transition"
+                            >
+                                {{ __('surveys.responses.detail_add_note') }}
+                            </button>
+                        </div>
+                    @endcan
                 </div>
             </div>
         </template>
